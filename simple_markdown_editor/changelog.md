@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Font family setting not applying to editor
 - Preview font family now respects settings
 - Closing dirty tab with "Save" then canceling save dialog no longer discards the tab
+- Directory watcher errors (EACCES/EAGAIN) when browsing near system directories like /dev
+- New file context menu action not showing inline rename input
+- Rename not refreshing file browser tree to reflect new name
 
 ## [0.1.0] - 2026-03-01
 

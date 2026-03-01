@@ -67,6 +67,13 @@ class FileWatcher {
         '**/dist/**',
         '**/dist-renderer/**',
         '**/build/**',
+        // System directories (avoid permission errors on macOS)
+        /^\/dev(\/|$)/,
+        /^\/System(\/|$)/,
+        /^\/Volumes(\/|$)/,
+        /^\/private\/(var|tmp)(\/|$)/,
+        /^\/proc(\/|$)/,
+        /^\/sys(\/|$)/,
       ],
       usePolling: false,
     });
@@ -80,6 +87,8 @@ class FileWatcher {
     this._dirWatcher.on('addDir', debouncedCallback);
     this._dirWatcher.on('unlinkDir', debouncedCallback);
     this._dirWatcher.on('error', (err) => {
+      // Silently ignore permission/access errors (e.g. system directories)
+      if (err.code === 'EACCES' || err.code === 'EAGAIN') return;
       console.error('Directory watcher error:', err.message);
     });
   }

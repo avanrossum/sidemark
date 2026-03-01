@@ -131,6 +131,16 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeF
     }
   }, [activeFilePath, entry.path, entry.isDirectory]);
 
+  // Auto-expand ancestor directories to reveal renaming target
+  useEffect(() => {
+    if (entry.isDirectory && renamingPath && renamingPath.startsWith(entry.path + '/') && !expandedRef.current) {
+      electronAPI.readDirectory(entry.path).then((result) => {
+        if (result.success) setChildren(result.entries);
+        setExpanded(true);
+      });
+    }
+  }, [renamingPath, entry.path, entry.isDirectory]);
+
   // Scroll active file into view
   useEffect(() => {
     if (isActive && rowRef.current) {
@@ -310,8 +320,11 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
     }
     const filePath = dirPath + '/' + name;
     await electronAPI.createFile(filePath, '');
-    setTimeout(() => setRenamingPath(filePath), 200);
-  }, []);
+    // Force refresh so the new entry appears, then activate inline rename
+    await loadDirectory(folderPath);
+    setRefreshKey((k) => k + 1);
+    setTimeout(() => setRenamingPath(filePath), 100);
+  }, [folderPath, loadDirectory]);
 
   const createNewFolder = useCallback(async (dirPath) => {
     let name = 'New Folder';
@@ -322,8 +335,11 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
     }
     const newPath = dirPath + '/' + name;
     await electronAPI.createDirectory(newPath);
-    setTimeout(() => setRenamingPath(newPath), 200);
-  }, []);
+    // Force refresh so the new entry appears, then activate inline rename
+    await loadDirectory(folderPath);
+    setRefreshKey((k) => k + 1);
+    setTimeout(() => setRenamingPath(newPath), 100);
+  }, [folderPath, loadDirectory]);
 
   const handleContextMenu = useCallback((e, entry) => {
     const items = [];
@@ -372,10 +388,15 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
     const newPath = dir + '/' + newName.trim();
     const result = await electronAPI.renameFile(oldPath, newPath);
     setRenamingPath(null);
-    if (result.success && onFileRenamed) {
-      onFileRenamed(oldPath, newPath);
+    if (result.success) {
+      // Force refresh so the tree reflects the new name
+      loadDirectory(folderPath);
+      setRefreshKey((k) => k + 1);
+      if (onFileRenamed) {
+        onFileRenamed(oldPath, newPath);
+      }
     }
-  }, [onFileRenamed]);
+  }, [onFileRenamed, folderPath, loadDirectory]);
 
   const displayPath = folderPath ? truncatePath(folderPath, homeDir) : '';
 
