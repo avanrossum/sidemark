@@ -101,6 +101,8 @@ const electronAPI = {
   getVersion: () => ipcRenderer.invoke('app:version'),
   openExternal: (url) => ipcRenderer.invoke('app:open-external', url),
   getSystemTheme: () => ipcRenderer.invoke('app:system-theme'),
+  getHomeDir: () => ipcRenderer.invoke('app:home-dir'),
+  getParentDir: (dirPath) => ipcRenderer.invoke('app:parent-dir', dirPath),
   onThemeChanged: (callback) => {
     const handler = (_, theme) => callback(theme);
     ipcRenderer.on('app:theme-changed', handler);

@@ -186,6 +186,14 @@ function registerIpcHandlers({ store, fileWatcher, getMainWindow }) {
   ipcMain.handle('app:system-theme', async () => {
     return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
   });
+
+  ipcMain.handle('app:home-dir', async () => {
+    return app.getPath('home');
+  });
+
+  ipcMain.handle('app:parent-dir', async (_, dirPath) => {
+    return path.dirname(dirPath);
+  });
 }
 
 module.exports = { registerIpcHandlers };

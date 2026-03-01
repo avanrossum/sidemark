@@ -83,6 +83,24 @@ export default function App() {
     }
   }, [settings?.accentColor]);
 
+  // Apply editor font settings
+  useEffect(() => {
+    const root = document.documentElement.style;
+    if (settings?.fontSize) {
+      root.setProperty('--editor-font-size', `${settings.fontSize}px`);
+    }
+    if (settings?.fontFamily && settings.fontFamily !== 'default') {
+      root.setProperty('--editor-font-family', settings.fontFamily);
+    } else {
+      root.setProperty('--editor-font-family', "var(--font-mono)");
+    }
+    if (settings?.previewFontFamily && settings.previewFontFamily !== 'default') {
+      root.setProperty('--preview-font-family', settings.previewFontFamily);
+    } else {
+      root.setProperty('--preview-font-family', "var(--font-system)");
+    }
+  }, [settings?.fontSize, settings?.fontFamily, settings?.previewFontFamily]);
+
   // ── File Operations ──
 
   const openFile = useCallback(async (filePath) => {
@@ -404,6 +422,7 @@ export default function App() {
             content={activeTab.content}
             theme={theme}
             editorRef={editorRef}
+            filePath={activeTab.filePath}
           />
         </div>
       </div>

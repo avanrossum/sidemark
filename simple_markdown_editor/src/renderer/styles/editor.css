@@ -15,7 +15,7 @@
   flex: 1;
   padding: var(--space-xl);
   overflow-y: auto;
-  font-family: var(--font-system);
+  font-family: var(--preview-font-family, var(--font-system));
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-primary);

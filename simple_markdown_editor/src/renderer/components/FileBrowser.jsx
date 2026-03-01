@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 const { electronAPI } = window;
 
-function FileTreeItem({ entry, depth, onOpenFile, refreshKey }) {
+const MD_EXTENSIONS = /\.(md|markdown|mdown|mkd|txt)$/i;
+
+function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState([]);
 
@@ -15,12 +17,15 @@ function FileTreeItem({ entry, depth, onOpenFile, refreshKey }) {
     }
   }, [refreshKey, expanded, entry.path, entry.isDirectory]);
 
-  const toggleExpand = useCallback(async () => {
+  const handleClick = useCallback(async () => {
     if (!entry.isDirectory) {
-      onOpenFile(entry.path);
+      // Only open markdown files
+      if (MD_EXTENSIONS.test(entry.name)) {
+        onOpenFile(entry.path);
+      }
       return;
     }
-
+    // Single click: toggle expand
     if (!expanded) {
       const result = await electronAPI.readDirectory(entry.path);
       if (result.success) setChildren(result.entries);
@@ -28,14 +33,23 @@ function FileTreeItem({ entry, depth, onOpenFile, refreshKey }) {
     setExpanded((v) => !v);
   }, [entry, expanded, onOpenFile]);
 
-  const isMarkdown = !entry.isDirectory && /\.(md|markdown|mdown|mkd|txt)$/i.test(entry.name);
+  const handleDoubleClick = useCallback((e) => {
+    if (entry.isDirectory) {
+      e.stopPropagation();
+      onSetRoot(entry.path);
+    }
+  }, [entry, onSetRoot]);
+
+  const isMarkdown = !entry.isDirectory && MD_EXTENSIONS.test(entry.name);
+  const isNonMarkdownFile = !entry.isDirectory && !isMarkdown;
 
   return (
     <div className="file-tree-item">
       <div
-        className={`file-tree-row ${entry.isDirectory ? 'is-directory' : ''} ${isMarkdown ? 'is-markdown' : ''}`}
+        className={`file-tree-row ${entry.isDirectory ? 'is-directory' : ''} ${isMarkdown ? 'is-markdown' : ''} ${isNonMarkdownFile ? 'is-non-markdown' : ''}`}
         style={{ paddingLeft: `${8 + depth * 14}px` }}
-        onClick={toggleExpand}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
         title={entry.path}
       >
         {entry.isDirectory && (
@@ -60,6 +74,7 @@ function FileTreeItem({ entry, depth, onOpenFile, refreshKey }) {
               entry={child}
               depth={depth + 1}
               onOpenFile={onOpenFile}
+              onSetRoot={onSetRoot}
               refreshKey={refreshKey}
             />
           ))}
@@ -74,9 +89,27 @@ function FileTreeItem({ entry, depth, onOpenFile, refreshKey }) {
   );
 }
 
+function truncatePath(fullPath, homeDir) {
+  if (homeDir && fullPath.startsWith(homeDir)) {
+    return '~' + fullPath.slice(homeDir.length);
+  }
+  return fullPath;
+}
+
 export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpenSettings, width }) {
   const [entries, setEntries] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [homeDir, setHomeDir] = useState(null);
+
+  // Get home directory on mount and default to it if no folder is set
+  useEffect(() => {
+    electronAPI.getHomeDir().then((dir) => {
+      setHomeDir(dir);
+      if (!folderPath) {
+        onSetFolder(dir);
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDirectory = useCallback(async (dirPath) => {
     if (!dirPath) return;
@@ -108,8 +141,45 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
     }
   }, [onSetFolder]);
 
+  const handleGoUp = useCallback(async () => {
+    if (!folderPath) return;
+    const parent = await electronAPI.getParentDir(folderPath);
+    if (parent && parent !== folderPath) {
+      onSetFolder(parent);
+    }
+  }, [folderPath, onSetFolder]);
+
+  const displayPath = folderPath ? truncatePath(folderPath, homeDir) : '';
+
   return (
     <div className="file-browser" style={{ width: `${width}px` }}>
+      {/* Path navigation header */}
+      {folderPath && (
+        <div className="file-browser-header">
+          <button
+            className="file-browser-back-btn"
+            onClick={handleGoUp}
+            title="Go to parent directory"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+            </svg>
+          </button>
+          <span className="file-browser-path" title={folderPath}>
+            {displayPath}
+          </span>
+          <button
+            className="file-browser-open-btn"
+            onClick={handleOpenFolder}
+            title="Open folder"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+              <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       <div className="file-browser-content">
         {!folderPath ? (
           <div className="file-browser-empty">
@@ -125,6 +195,7 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
                 entry={entry}
                 depth={0}
                 onOpenFile={onOpenFile}
+                onSetRoot={onSetFolder}
                 refreshKey={refreshKey}
               />
             ))}

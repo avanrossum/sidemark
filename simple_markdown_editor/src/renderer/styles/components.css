@@ -125,6 +125,49 @@
   overflow: hidden;
 }
 
+.file-browser-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  min-height: 30px;
+}
+
+.file-browser-back-btn,
+.file-browser-open-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+.file-browser-back-btn:hover,
+.file-browser-open-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.file-browser-path {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
 .file-browser-content {
   flex: 1;
   overflow-y: auto;
@@ -165,6 +208,15 @@
 
 .file-tree-row.is-markdown {
   color: var(--text-primary);
+}
+
+.file-tree-row.is-non-markdown {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.file-tree-row.is-non-markdown:hover {
+  background: transparent;
 }
 
 .expand-icon {
@@ -437,19 +489,53 @@ select:focus {
   transform: translateX(18px);
 }
 
+/* Segmented Control (theme switcher) */
+.segmented-control {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented-option {
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-system);
+  border: none;
+  border-radius: 0;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.segmented-option:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+.segmented-option:hover:not(.active) {
+  background: var(--bg-hover);
+}
+
+.segmented-option.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
 /* Accent Color Picker */
 .accent-picker {
   display: flex;
-  gap: var(--space-sm);
+  gap: 8px;
 }
 
 .accent-swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: 2px solid transparent;
   cursor: pointer;
-  transition: border-color var(--transition-normal), transform var(--transition-fast);
+  transition: border-color 0.15s ease, transform 0.1s ease;
 }
 
 .accent-swatch:hover {
@@ -465,5 +551,5 @@ select:focus {
 .accent-swatch[data-color="pink"] { background: #ec4899; }
 .accent-swatch[data-color="red"] { background: #f43f5e; }
 .accent-swatch[data-color="orange"] { background: #f97316; }
-.accent-swatch[data-color="green"] { background: #10b981; }
 .accent-swatch[data-color="amber"] { background: #f59e0b; }
+.accent-swatch[data-color="green"] { background: #10b981; }

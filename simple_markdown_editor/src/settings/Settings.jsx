@@ -2,16 +2,26 @@ import React, { useState, useEffect } from 'react';
 
 const { electronAPI } = window;
 
-const ACCENT_COLORS = ['blue', 'purple', 'pink', 'red', 'orange', 'green', 'amber'];
+const ACCENT_COLORS = ['blue', 'purple', 'pink', 'red', 'orange', 'amber', 'green'];
 
-const FONT_OPTIONS = [
-  { value: 'default', label: 'Default (SF Mono)' },
-  { value: "'Fira Code', monospace", label: 'Fira Code' },
-  { value: "'JetBrains Mono', monospace", label: 'JetBrains Mono' },
-  { value: "'Source Code Pro', monospace", label: 'Source Code Pro' },
-  { value: "'Cascadia Code', monospace", label: 'Cascadia Code' },
-  { value: "'IBM Plex Mono', monospace", label: 'IBM Plex Mono' },
+const EDITOR_FONT_OPTIONS = [
+  { value: 'default', label: 'SF Mono (Default)' },
+  { value: "'Menlo', monospace", label: 'Menlo' },
+  { value: "'Monaco', monospace", label: 'Monaco' },
+  { value: "'Courier New', monospace", label: 'Courier New' },
+  { value: "'Andale Mono', monospace", label: 'Andale Mono' },
 ];
+
+const PREVIEW_FONT_OPTIONS = [
+  { value: 'default', label: 'System (Default)' },
+  { value: "'Helvetica Neue', Helvetica, sans-serif", label: 'Helvetica Neue' },
+  { value: "'Georgia', serif", label: 'Georgia' },
+  { value: "'Palatino', 'Palatino Linotype', serif", label: 'Palatino' },
+  { value: "'Avenir Next', 'Avenir', sans-serif", label: 'Avenir Next' },
+  { value: "'Charter', serif", label: 'Charter' },
+];
+
+const THEME_OPTIONS = ['dark', 'light', 'system'];
 
 export default function Settings({ settings: initialSettings, onClose }) {
   const [settings, setSettings] = useState(initialSettings);
@@ -37,18 +47,21 @@ export default function Settings({ settings: initialSettings, onClose }) {
 
           <div className="settings-row">
             <label>Theme</label>
-            <select
-              value={settings.theme}
-              onChange={(e) => updateSetting('theme', e.target.value)}
-            >
-              <option value="system">System</option>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
+            <div className="segmented-control">
+              {THEME_OPTIONS.map((t) => (
+                <button
+                  key={t}
+                  className={`segmented-option ${settings.theme === t ? 'active' : ''}`}
+                  onClick={() => updateSetting('theme', t)}
+                >
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="settings-row">
-            <label>Accent Color</label>
+            <label>Accent color</label>
             <div className="accent-picker">
               {ACCENT_COLORS.map((color) => (
                 <button
@@ -68,7 +81,7 @@ export default function Settings({ settings: initialSettings, onClose }) {
           <div className="settings-section-title">Editor</div>
 
           <div className="settings-row">
-            <label>Font Size</label>
+            <label>Font size</label>
             <select
               value={settings.fontSize}
               onChange={(e) => updateSetting('fontSize', Number(e.target.value))}
@@ -80,19 +93,31 @@ export default function Settings({ settings: initialSettings, onClose }) {
           </div>
 
           <div className="settings-row">
-            <label>Font Family</label>
+            <label>Editor font</label>
             <select
               value={settings.fontFamily}
               onChange={(e) => updateSetting('fontFamily', e.target.value)}
             >
-              {FONT_OPTIONS.map((opt) => (
+              {EDITOR_FONT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
 
           <div className="settings-row">
-            <label>Word Wrap</label>
+            <label>Preview font</label>
+            <select
+              value={settings.previewFontFamily || 'default'}
+              onChange={(e) => updateSetting('previewFontFamily', e.target.value)}
+            >
+              {PREVIEW_FONT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="settings-row">
+            <label>Word wrap</label>
             <label className="toggle">
               <input
                 type="checkbox"
@@ -104,7 +129,7 @@ export default function Settings({ settings: initialSettings, onClose }) {
           </div>
 
           <div className="settings-row">
-            <label>Line Numbers</label>
+            <label>Line numbers</label>
             <label className="toggle">
               <input
                 type="checkbox"
@@ -116,7 +141,7 @@ export default function Settings({ settings: initialSettings, onClose }) {
           </div>
 
           <div className="settings-row">
-            <label>Spell Check</label>
+            <label>Spell check</label>
             <label className="toggle">
               <input
                 type="checkbox"

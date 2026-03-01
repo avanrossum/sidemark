@@ -3,11 +3,38 @@ import { Marked } from 'marked';
 
 // ── Marked instance with source-line annotations ──
 
+function isRelativePath(src) {
+  return src && !src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:') && !src.startsWith('/') && !src.startsWith('local-resource://');
+}
+
+function resolveRelativePath(baseDir, relativeSrc) {
+  const baseParts = baseDir.split('/').filter(Boolean);
+  const srcParts = relativeSrc.split('/');
+  const resolved = [...baseParts];
+  for (const part of srcParts) {
+    if (part === '..') resolved.pop();
+    else if (part !== '.') resolved.push(part);
+  }
+  return '/' + resolved.join('/');
+}
+
 function createAnnotatedRenderer() {
+  let currentBaseDir = null;
+
   const md = new Marked({ breaks: true, gfm: true });
 
   md.use({
     renderer: {
+      image(token) {
+        let src = token.href || '';
+        if (currentBaseDir && isRelativePath(src)) {
+          const absPath = resolveRelativePath(currentBaseDir, src);
+          src = `local-resource://${absPath}`;
+        }
+        const alt = token.text || '';
+        const title = token.title ? ` title="${token.title}"` : '';
+        return `<img src="${src}" alt="${alt}"${title} />`;
+      },
       heading(token) {
         const text = this.parser.parseInline(token.tokens);
         const attr = token._sourceLine != null ? ` data-source-line="${token._sourceLine}"` : '';
@@ -70,8 +97,9 @@ function createAnnotatedRenderer() {
   });
 
   return {
-    parse(content) {
+    parse(content, baseDir) {
       if (!content) return '';
+      currentBaseDir = baseDir || null;
       try {
         const tokens = md.lexer(content);
 
@@ -104,13 +132,21 @@ const SYNC_COOLDOWN_MS = 80;
 
 // ── Preview Component ──
 
-export default function Preview({ content, theme, editorRef }) {
+export default function Preview({ content, theme, editorRef, filePath }) {
   const previewRef = useRef(null);
   const scrollSourceRef = useRef(null); // 'editor' | 'preview' | null
   const cooldownTimerRef = useRef(null);
 
+  // Derive base directory from file path
+  const baseDir = useMemo(() => {
+    if (!filePath) return null;
+    const parts = filePath.split('/');
+    parts.pop();
+    return parts.join('/');
+  }, [filePath]);
+
   // Parse markdown with source line annotations
-  const html = useMemo(() => annotatedMd.parse(content), [content]);
+  const html = useMemo(() => annotatedMd.parse(content, baseDir), [content, baseDir]);
 
   // ── Build Anchor Map ──
 

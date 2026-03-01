@@ -26,7 +26,9 @@
 ### File Management
 
 - [x] File browser pane (left sidebar)
-- [x] File browser: expand/collapse directories
+- [x] File browser: expand/collapse directories, double-click to set root
+- [x] File browser: path navigation with back button, defaults to home directory
+- [x] File browser: only markdown files are openable
 - [x] Open file from file browser
 - [x] Open file from menu / dialog
 - [x] Open folder for file browser
@@ -46,13 +48,16 @@
 - [x] Live markdown preview (right pane)
 - [x] Section-based bidirectional synchronized scrolling (editor ↔ preview)
 - [x] GitHub Flavored Markdown rendering
+- [x] Relative image path resolution in preview (local-resource:// protocol)
 
 ### Settings
 
 - [x] Theme: dark / light / system
 - [x] Accent color picker (7 colors)
-- [x] Font size selector
-- [x] Font family selector
+- [x] Font size selector (applies to editor)
+- [x] Editor font family selector (system monospace fonts)
+- [x] Preview font family selector (system fonts)
+- [x] Theme selector: segmented control (Dark / Light / System)
 - [x] Toggle: word wrap, line numbers, spell check
 - [x] About section with links to mipyip.com and GitHub
 - [x] Settings gear in file browser footer

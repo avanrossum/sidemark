@@ -1,10 +1,15 @@
-const { app, BrowserWindow, nativeTheme } = require('electron');
+const { app, BrowserWindow, nativeTheme, protocol, net } = require('electron');
 const path = require('path');
 const Store = require('./store');
 const FileWatcher = require('./file-watcher');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { buildAndSetMenu } = require('./menu');
 const { THEME_BG_COLORS, WINDOW_DEFAULTS, TIMING } = require('./constants');
+
+// ── Register custom protocol for local file access (must be before ready) ──
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'local-resource', privileges: { secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
+]);
 
 // ── State ──
 let mainWindow = null;
@@ -132,6 +137,13 @@ function broadcastTheme() {
 // ── App Lifecycle ──
 
 app.whenReady().then(() => {
+  // Handle local-resource:// protocol for preview images
+  protocol.handle('local-resource', (request) => {
+    const url = new URL(request.url);
+    const filePath = decodeURIComponent(url.pathname);
+    return net.fetch(`file://${filePath}`);
+  });
+
   createMainWindow();
 
   registerIpcHandlers({

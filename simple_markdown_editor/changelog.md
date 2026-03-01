@@ -12,6 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Save-before-close confirmation dialog for dirty files
 - Bidirectional synchronized scrolling between editor and preview using section-based anchor mapping
 - File browser auto-refreshes expanded subdirectories when file system changes are detected
+- File browser defaults to home directory (~) with path navigation and back button
+- File browser: double-click directories to set as root
+- Relative image path resolution in preview via `local-resource://` custom protocol
+- Preview font family selector (system fonts: Helvetica Neue, Georgia, Palatino, Avenir Next, Charter)
+- Theme selector: segmented control (Dark / Light / System) matching design standards
+- Editor font family options switched to system monospace fonts (SF Mono, Menlo, Monaco, Courier New, Andale Mono)
+
+### Changed
+
+- Accent color swatches restyled from circles to rounded squares
+- Non-markdown files in file browser are now dimmed and non-clickable
 
 ### Fixed
 
@@ -19,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Title bar drag region: empty space between tabs is now draggable to move the window
 - Text selection visibility: increased selection highlight contrast and reduced active line highlight opacity
 - File browser not updating after duplicating/saving new files
+- Font size setting not applying to editor
+- Font family setting not applying to editor
+- Preview font family now respects settings
 
 ## [0.1.0] - 2026-03-01
 

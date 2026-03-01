@@ -10,6 +10,9 @@
   --editor-font-size: 14px;
   --editor-font-family: var(--font-mono);
 
+  /* Preview font (configurable via settings) */
+  --preview-font-family: var(--font-system);
+
   /* Spacing base: 4px */
   --space-xs: 4px;
   --space-sm: 6px;
