@@ -1,0 +1,52 @@
+// ── Theme Background Colors ──
+// Used to set window background before renderer loads (prevents flash)
+const THEME_BG_COLORS = {
+  dark: '#1a1d23',
+  light: '#f5f5f7',
+};
+
+// ── Window Defaults ──
+const WINDOW_DEFAULTS = {
+  MIN_WIDTH: 800,
+  MIN_HEIGHT: 500,
+  DEFAULT_WIDTH: 1200,
+  DEFAULT_HEIGHT: 750,
+};
+
+const SETTINGS_WINDOW = {
+  WIDTH: 500,
+  HEIGHT: 520,
+};
+
+// ── Timing ──
+const TIMING = {
+  SAVE_DEBOUNCE_MS: 300,
+  BOUNDS_SAVE_DEBOUNCE_MS: 500,
+  FILE_WATCH_DEBOUNCE_MS: 500,
+  UPDATE_CHECK_INTERVAL_MS: 4 * 60 * 60 * 1000,
+};
+
+// ── Default Settings ──
+const DEFAULT_SETTINGS = {
+  theme: 'system',
+  accentColor: 'blue',
+  fontSize: 14,
+  fontFamily: 'default',
+  editorWordWrap: true,
+  spellCheck: true,
+  showLineNumbers: true,
+  autoSave: false,
+  autoSaveDelay: 5000,
+  fileBrowserWidth: 180,
+  recentFiles: [],
+  recentDirectories: [],
+  windowBounds: null,
+};
+
+module.exports = {
+  THEME_BG_COLORS,
+  WINDOW_DEFAULTS,
+  SETTINGS_WINDOW,
+  TIMING,
+  DEFAULT_SETTINGS,
+};

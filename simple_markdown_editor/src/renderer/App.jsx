@@ -1,0 +1,433 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import TabBar from './components/TabBar';
+import FileBrowser from './components/FileBrowser';
+import Editor from './components/Editor';
+import Preview from './components/Preview';
+import Toolbar from './components/Toolbar';
+import SearchReplace from './components/SearchReplace';
+import DiffView from './components/DiffView';
+import Settings from '../settings/Settings';
+
+const { electronAPI } = window;
+
+// ── Tab Helpers ──
+
+let tabIdCounter = 1;
+
+function createTab(filePath = null, content = '') {
+  return {
+    id: tabIdCounter++,
+    filePath,
+    name: filePath ? null : 'Untitled', // null = derive from filePath
+    content,
+    savedContent: content,
+    lastKnownMtime: null,
+  };
+}
+
+export default function App() {
+  const [tabs, setTabs] = useState([createTab()]);
+  const [activeTabId, setActiveTabId] = useState(1);
+  const [folderPath, setFolderPath] = useState(null);
+  const [settings, setSettings] = useState(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showReplace, setShowReplace] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [diffData, setDiffData] = useState(null);
+  const [theme, setTheme] = useState('dark');
+  const editorRef = useRef(null);
+
+  const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
+
+  // ── Load Settings ──
+
+  useEffect(() => {
+    electronAPI.getSettings().then((s) => {
+      setSettings(s);
+      applyTheme(s.theme);
+    });
+
+    const unsub = electronAPI.onSettingsChanged((s) => {
+      setSettings(s);
+      applyTheme(s.theme);
+    });
+    return unsub;
+  }, []);
+
+  // ── Theme ──
+
+  const applyTheme = useCallback(async (themeSetting) => {
+    let resolved = themeSetting;
+    if (themeSetting === 'system') {
+      resolved = await electronAPI.getSystemTheme();
+    }
+    setTheme(resolved);
+    document.documentElement.dataset.theme = resolved;
+  }, []);
+
+  useEffect(() => {
+    const unsub = electronAPI.onThemeChanged((systemTheme) => {
+      if (settings?.theme === 'system') {
+        setTheme(systemTheme);
+        document.documentElement.dataset.theme = systemTheme;
+      }
+    });
+    return unsub;
+  }, [settings?.theme]);
+
+  // Apply accent color
+  useEffect(() => {
+    if (settings?.accentColor) {
+      document.documentElement.dataset.accent = settings.accentColor;
+    }
+  }, [settings?.accentColor]);
+
+  // ── File Operations ──
+
+  const openFile = useCallback(async (filePath) => {
+    // Check if already open
+    const existing = tabs.find((t) => t.filePath === filePath);
+    if (existing) {
+      setActiveTabId(existing.id);
+      return;
+    }
+
+    const result = await electronAPI.readFile(filePath);
+    if (!result.success) return;
+
+    const stat = await electronAPI.getFileStat(filePath);
+    const tab = createTab(filePath, result.content);
+    tab.savedContent = result.content;
+    tab.lastKnownMtime = stat.success ? stat.mtime : null;
+
+    setTabs((prev) => [...prev, tab]);
+    setActiveTabId(tab.id);
+    electronAPI.addRecentFile(filePath);
+    electronAPI.watchFile(filePath);
+  }, [tabs]);
+
+  const saveTab = useCallback(async (tabId) => {
+    const tab = tabs.find((t) => t.id === (tabId || activeTabId));
+    if (!tab) return;
+
+    if (!tab.filePath) {
+      return saveTabAs(tab.id);
+    }
+
+    // Temporarily unwatch to avoid self-trigger
+    await electronAPI.unwatchFile(tab.filePath);
+    const result = await electronAPI.writeFile(tab.filePath, tab.content);
+    if (result.success) {
+      const stat = await electronAPI.getFileStat(tab.filePath);
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === tab.id
+            ? { ...t, savedContent: t.content, lastKnownMtime: stat.success ? stat.mtime : null }
+            : t
+        )
+      );
+    }
+    await electronAPI.watchFile(tab.filePath);
+  }, [tabs, activeTabId]);
+
+  const saveTabAs = useCallback(async (tabId) => {
+    const tab = tabs.find((t) => t.id === (tabId || activeTabId));
+    if (!tab) return;
+
+    const result = await electronAPI.showSaveDialog({
+      defaultPath: tab.filePath || 'Untitled.md',
+    });
+
+    if (result.canceled || !result.filePath) return;
+
+    const writeResult = await electronAPI.writeFile(result.filePath, tab.content);
+    if (writeResult.success) {
+      const stat = await electronAPI.getFileStat(result.filePath);
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === tab.id
+            ? {
+                ...t,
+                filePath: result.filePath,
+                name: null,
+                savedContent: t.content,
+                lastKnownMtime: stat.success ? stat.mtime : null,
+              }
+            : t
+        )
+      );
+      electronAPI.addRecentFile(result.filePath);
+      electronAPI.watchFile(result.filePath);
+    }
+  }, [tabs, activeTabId]);
+
+  const newFile = useCallback(() => {
+    const tab = createTab();
+    setTabs((prev) => [...prev, tab]);
+    setActiveTabId(tab.id);
+  }, []);
+
+  const closeTab = useCallback((tabId) => {
+    const tab = tabs.find((t) => t.id === tabId);
+    if (tab?.filePath) {
+      electronAPI.unwatchFile(tab.filePath);
+    }
+
+    setTabs((prev) => {
+      const next = prev.filter((t) => t.id !== tabId);
+      if (next.length === 0) {
+        const fresh = createTab();
+        setActiveTabId(fresh.id);
+        return [fresh];
+      }
+      if (activeTabId === tabId) {
+        const idx = prev.findIndex((t) => t.id === tabId);
+        const newIdx = Math.min(idx, next.length - 1);
+        setActiveTabId(next[newIdx].id);
+      }
+      return next;
+    });
+  }, [tabs, activeTabId]);
+
+  const duplicateFile = useCallback(async () => {
+    if (!activeTab) return;
+    const tab = createTab(null, activeTab.content);
+    tab.name = `${getTabName(activeTab)} copy`;
+    setTabs((prev) => [...prev, tab]);
+    setActiveTabId(tab.id);
+  }, [activeTab]);
+
+  // ── Content Updates ──
+
+  const updateContent = useCallback((tabId, content) => {
+    setTabs((prev) =>
+      prev.map((t) => (t.id === tabId ? { ...t, content } : t))
+    );
+  }, []);
+
+  // ── File Watching (external changes) ──
+
+  useEffect(() => {
+    const unsub = electronAPI.onFileChanged(async (filePath) => {
+      const tab = tabs.find((t) => t.filePath === filePath);
+      if (!tab) return;
+
+      const result = await electronAPI.readFile(filePath);
+      if (!result.success) return;
+
+      const externalContent = result.content;
+      const hasLocalChanges = tab.content !== tab.savedContent;
+
+      if (!hasLocalChanges) {
+        // No local edits — silently update
+        setTabs((prev) =>
+          prev.map((t) =>
+            t.filePath === filePath
+              ? { ...t, content: externalContent, savedContent: externalContent }
+              : t
+          )
+        );
+      } else {
+        // Local edits exist — show diff dialog
+        setDiffData({
+          tabId: tab.id,
+          filePath,
+          currentContent: tab.content,
+          externalContent,
+        });
+      }
+    });
+    return unsub;
+  }, [tabs]);
+
+  // ── Diff Resolution ──
+
+  const handleDiffResolve = useCallback(async (action) => {
+    if (!diffData) return;
+
+    if (action === 'overwrite') {
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === diffData.tabId
+            ? { ...t, content: diffData.externalContent, savedContent: diffData.externalContent }
+            : t
+        )
+      );
+    } else if (action === 'save-as-new') {
+      const result = await electronAPI.showSaveDialog({
+        defaultPath: diffData.filePath,
+      });
+      if (!result.canceled && result.filePath) {
+        await electronAPI.writeFile(result.filePath, diffData.currentContent);
+        // Also accept the external version in current tab
+        setTabs((prev) =>
+          prev.map((t) =>
+            t.id === diffData.tabId
+              ? { ...t, content: diffData.externalContent, savedContent: diffData.externalContent }
+              : t
+          )
+        );
+      }
+    }
+    // 'cancel' — do nothing, keep current state
+    setDiffData(null);
+  }, [diffData]);
+
+  // ── Menu Events ──
+
+  useEffect(() => {
+    const unsubs = [
+      electronAPI.onMenuSave(() => saveTab()),
+      electronAPI.onMenuSaveAs(() => saveTabAs()),
+      electronAPI.onMenuNewFile(() => newFile()),
+      electronAPI.onOpenFile((filePath) => openFile(filePath)),
+      electronAPI.onOpenFolder((dirPath) => setFolderPath(dirPath)),
+      electronAPI.onToggleSearch(() => {
+        setShowSearch((v) => !v);
+        setShowReplace(false);
+      }),
+      electronAPI.onToggleSearchReplace(() => {
+        setShowSearch(true);
+        setShowReplace((v) => !v);
+      }),
+      electronAPI.onDuplicateFile(() => duplicateFile()),
+      electronAPI.onShowSettings(() => setShowSettings(true)),
+      electronAPI.onShowAbout(() => setShowAbout(true)),
+    ];
+    return () => unsubs.forEach((fn) => fn());
+  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile]);
+
+  // ── Toolbar Actions ──
+
+  const handleToolbarAction = useCallback((action) => {
+    if (editorRef.current) {
+      editorRef.current.applyFormatting(action);
+    }
+  }, []);
+
+  // ── Helpers ──
+
+  function getTabName(tab) {
+    if (tab.name) return tab.name;
+    if (tab.filePath) {
+      const parts = tab.filePath.split('/');
+      return parts[parts.length - 1];
+    }
+    return 'Untitled';
+  }
+
+  function isTabDirty(tab) {
+    return tab.content !== tab.savedContent;
+  }
+
+  if (!settings) return null; // Loading
+
+  return (
+    <div className="app">
+      {/* ── Drag Region + Tabs ── */}
+      <div className="title-bar">
+        <div className="drag-region" />
+        <TabBar
+          tabs={tabs.map((t) => ({
+            id: t.id,
+            name: getTabName(t),
+            dirty: isTabDirty(t),
+          }))}
+          activeTabId={activeTabId}
+          onSelectTab={setActiveTabId}
+          onCloseTab={closeTab}
+          onNewTab={newFile}
+        />
+      </div>
+
+      {/* ── Main Content ── */}
+      <div className="main-content">
+        {/* File Browser */}
+        <FileBrowser
+          folderPath={folderPath}
+          onOpenFile={openFile}
+          onSetFolder={setFolderPath}
+          onOpenSettings={() => setShowSettings(true)}
+          width={settings.fileBrowserWidth}
+        />
+
+        {/* Editor Column */}
+        <div className="editor-column">
+          <Toolbar onAction={handleToolbarAction} />
+          {showSearch && (
+            <SearchReplace
+              editorRef={editorRef}
+              showReplace={showReplace}
+              onClose={() => {
+                setShowSearch(false);
+                setShowReplace(false);
+              }}
+            />
+          )}
+          <Editor
+            ref={editorRef}
+            content={activeTab.content}
+            onChange={(val) => updateContent(activeTab.id, val)}
+            settings={settings}
+            theme={theme}
+          />
+        </div>
+
+        {/* Preview Column */}
+        <div className="preview-column">
+          <div className="preview-spacer" />
+          <Preview
+            content={activeTab.content}
+            theme={theme}
+            editorRef={editorRef}
+          />
+        </div>
+      </div>
+
+      {/* ── Modals ── */}
+      {diffData && (
+        <DiffView
+          filePath={diffData.filePath}
+          currentContent={diffData.currentContent}
+          externalContent={diffData.externalContent}
+          onResolve={handleDiffResolve}
+        />
+      )}
+
+      {showSettings && (
+        <Settings
+          settings={settings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {showAbout && (
+        <div className="modal-overlay" onClick={() => setShowAbout(false)}>
+          <div className="modal about-modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Simple Markdown Editor</h2>
+            <p className="about-version">v{settings._version || '0.1.0'}</p>
+            <p className="about-description">A stupid simple markdown editor.</p>
+            <div className="about-links">
+              <button
+                className="link-button"
+                onClick={() => electronAPI.openExternal('https://mipyip.com')}
+              >
+                mipyip.com
+              </button>
+              <button
+                className="link-button"
+                onClick={() => electronAPI.openExternal('https://github.com/avanrossum/simple-markdown-editor')}
+              >
+                GitHub
+              </button>
+            </div>
+            <button className="btn btn-primary" onClick={() => setShowAbout(false)}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

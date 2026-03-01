@@ -1,0 +1,11 @@
+node_modules/
+dist-renderer/
+dist/
+*.dmg
+*.zip
+*.blockmap
+.DS_Store
+
+# Governance / LLM session artifacts (not for public repo)
+CLAUDE.md
+Architecture.md

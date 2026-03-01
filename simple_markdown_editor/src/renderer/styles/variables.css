@@ -1,0 +1,181 @@
+/* ── Design Standards: CSS Custom Properties ── */
+/* Based on /Users/avanrossum/Developer/design-standards/electron/STYLEGUIDE.md */
+
+:root {
+  /* Font stacks */
+  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Menlo', 'Monaco', Consolas, monospace;
+
+  /* Editor font (configurable via settings) */
+  --editor-font-size: 14px;
+  --editor-font-family: var(--font-mono);
+
+  /* Spacing base: 4px */
+  --space-xs: 4px;
+  --space-sm: 6px;
+  --space-md: 8px;
+  --space-lg: 12px;
+  --space-xl: 16px;
+  --space-xxl: 24px;
+
+  /* Border radius */
+  --radius-tiny: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Animation */
+  --transition-fast: 0.1s ease;
+  --transition-normal: 0.15s ease;
+  --transition-slow: 0.2s ease;
+
+  /* Text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Dark Theme ── */
+[data-theme="dark"] {
+  --bg-primary: #1a1d23;
+  --bg-surface: #242830;
+  --bg-elevated: #2a2e38;
+  --bg-hover: #2e3340;
+
+  --border-color: #2e3340;
+
+  --text-primary: #e8e8e8;
+  --text-secondary: #8890a0;
+  --text-muted: #5a6070;
+
+  --input-bg: #1e2128;
+  --input-border: #363c4a;
+
+  --button-bg: #2e3340;
+  --button-hover: #363c4a;
+
+  --dropdown-bg: #242830;
+  --dropdown-hover: #2e3340;
+
+  --modal-overlay: rgba(0, 0, 0, 0.6);
+
+  --scrollbar-thumb: #3a3f4b;
+
+  --success: #4caf50;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --danger: #ef4444;
+
+  --diff-added-bg: rgba(76, 175, 80, 0.15);
+  --diff-removed-bg: rgba(239, 68, 68, 0.15);
+  --diff-added-color: #4caf50;
+  --diff-removed-color: #ef4444;
+}
+
+/* ── Light Theme ── */
+[data-theme="light"] {
+  --bg-primary: #f5f5f7;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: #eeeef0;
+
+  --border-color: #e0e0e0;
+
+  --text-primary: #1a1d23;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+
+  --input-bg: #f0f0f2;
+  --input-border: #d1d5db;
+
+  --button-bg: #e5e5e7;
+  --button-hover: #d5d5d7;
+
+  --dropdown-bg: #ffffff;
+  --dropdown-hover: #f0f0f2;
+
+  --modal-overlay: rgba(0, 0, 0, 0.3);
+
+  --scrollbar-thumb: #c0c0c0;
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --danger: #ef4444;
+
+  --diff-added-bg: rgba(34, 197, 94, 0.15);
+  --diff-removed-bg: rgba(239, 68, 68, 0.15);
+  --diff-added-color: #16a34a;
+  --diff-removed-color: #dc2626;
+}
+
+/* ── Accent Colors ── */
+[data-accent="blue"], :root {
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-selection: rgba(59, 130, 246, 0.25);
+}
+[data-theme="light"][data-accent="blue"] {
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-selection: rgba(37, 99, 235, 0.2);
+}
+
+[data-accent="purple"] {
+  --accent: #8b5cf6;
+  --accent-hover: #a78bfa;
+  --accent-selection: rgba(139, 92, 246, 0.25);
+}
+[data-theme="light"][data-accent="purple"] {
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+}
+
+[data-accent="pink"] {
+  --accent: #ec4899;
+  --accent-hover: #f472b6;
+  --accent-selection: rgba(236, 72, 153, 0.25);
+}
+[data-theme="light"][data-accent="pink"] {
+  --accent: #db2777;
+  --accent-hover: #be185d;
+}
+
+[data-accent="red"] {
+  --accent: #f43f5e;
+  --accent-hover: #fb7185;
+  --accent-selection: rgba(244, 63, 94, 0.25);
+}
+[data-theme="light"][data-accent="red"] {
+  --accent: #e11d48;
+  --accent-hover: #be123c;
+}
+
+[data-accent="orange"] {
+  --accent: #f97316;
+  --accent-hover: #fb923c;
+  --accent-selection: rgba(249, 115, 22, 0.25);
+}
+[data-theme="light"][data-accent="orange"] {
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+}
+
+[data-accent="green"] {
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-selection: rgba(16, 185, 129, 0.25);
+}
+[data-theme="light"][data-accent="green"] {
+  --accent: #059669;
+  --accent-hover: #047857;
+}
+
+[data-accent="amber"] {
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-selection: rgba(245, 158, 11, 0.25);
+}
+[data-theme="light"][data-accent="amber"] {
+  --accent: #d97706;
+  --accent-hover: #b45309;
+}
