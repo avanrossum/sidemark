@@ -1,12 +1,116 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 const { electronAPI } = window;
 
 const MD_EXTENSIONS = /\.(md|markdown|mdown|mkd|txt)$/i;
 
-function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
+// ── Inline Rename Input ──
+
+function InlineRenameInput({ defaultValue, onSubmit, onCancel }) {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      const dotIndex = defaultValue.lastIndexOf('.');
+      inputRef.current.setSelectionRange(0, dotIndex > 0 ? dotIndex : defaultValue.length);
+    }
+  }, [defaultValue]);
+
+  const handleKeyDown = (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      onSubmit(inputRef.current.value);
+    } else if (e.key === 'Escape') {
+      onCancel();
+    }
+  };
+
+  return (
+    <input
+      ref={inputRef}
+      className="inline-rename-input"
+      defaultValue={defaultValue}
+      onKeyDown={handleKeyDown}
+      onBlur={() => onSubmit(inputRef.current.value)}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+}
+
+// ── Context Menu ──
+
+function ContextMenu({ x, y, items, onClose }) {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClick);
+      document.addEventListener('keydown', handleEscape);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  // Adjust position to stay within viewport
+  useEffect(() => {
+    if (menuRef.current) {
+      const rect = menuRef.current.getBoundingClientRect();
+      const maxX = window.innerWidth - rect.width - 8;
+      const maxY = window.innerHeight - rect.height - 8;
+      if (x > maxX) menuRef.current.style.left = `${maxX}px`;
+      if (y > maxY) menuRef.current.style.top = `${maxY}px`;
+    }
+  }, [x, y]);
+
+  return (
+    <div
+      ref={menuRef}
+      className="context-menu"
+      style={{ left: x, top: y }}
+    >
+      {items.map((item, i) => (
+        item.separator ? (
+          <div key={i} className="context-menu-separator" />
+        ) : (
+          <div
+            key={i}
+            className="context-menu-item"
+            onClick={() => {
+              item.action();
+              onClose();
+            }}
+          >
+            {item.label}
+          </div>
+        )
+      ))}
+    </div>
+  );
+}
+
+// ── File Tree Item ──
+
+function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeFilePath, renamingPath, onFinishRename, onCancelRename, onContextMenu }) {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState([]);
+  const rowRef = useRef(null);
+  const expandedRef = useRef(false);
+  expandedRef.current = expanded;
+
+  const isActive = !entry.isDirectory && entry.path === activeFilePath;
+  const isRenaming = entry.path === renamingPath;
 
   // Re-fetch children when refreshKey changes and directory is expanded
   useEffect(() => {
@@ -17,21 +121,40 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
     }
   }, [refreshKey, expanded, entry.path, entry.isDirectory]);
 
+  // Auto-expand ancestor directories when activeFilePath changes
+  useEffect(() => {
+    if (entry.isDirectory && activeFilePath && activeFilePath.startsWith(entry.path + '/') && !expandedRef.current) {
+      electronAPI.readDirectory(entry.path).then((result) => {
+        if (result.success) setChildren(result.entries);
+        setExpanded(true);
+      });
+    }
+  }, [activeFilePath, entry.path, entry.isDirectory]);
+
+  // Scroll active file into view
+  useEffect(() => {
+    if (isActive && rowRef.current) {
+      const timer = setTimeout(() => {
+        rowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isActive]);
+
   const handleClick = useCallback(async () => {
+    if (isRenaming) return;
     if (!entry.isDirectory) {
-      // Only open markdown files
       if (MD_EXTENSIONS.test(entry.name)) {
         onOpenFile(entry.path);
       }
       return;
     }
-    // Single click: toggle expand
     if (!expanded) {
       const result = await electronAPI.readDirectory(entry.path);
       if (result.success) setChildren(result.entries);
     }
     setExpanded((v) => !v);
-  }, [entry, expanded, onOpenFile]);
+  }, [entry, expanded, onOpenFile, isRenaming]);
 
   const handleDoubleClick = useCallback((e) => {
     if (entry.isDirectory) {
@@ -40,16 +163,24 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
     }
   }, [entry, onSetRoot]);
 
+  const handleContextMenu = useCallback((e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onContextMenu(e, entry);
+  }, [entry, onContextMenu]);
+
   const isMarkdown = !entry.isDirectory && MD_EXTENSIONS.test(entry.name);
   const isNonMarkdownFile = !entry.isDirectory && !isMarkdown;
 
   return (
     <div className="file-tree-item">
       <div
-        className={`file-tree-row ${entry.isDirectory ? 'is-directory' : ''} ${isMarkdown ? 'is-markdown' : ''} ${isNonMarkdownFile ? 'is-non-markdown' : ''}`}
+        ref={rowRef}
+        className={`file-tree-row ${entry.isDirectory ? 'is-directory' : ''} ${isMarkdown ? 'is-markdown' : ''} ${isNonMarkdownFile ? 'is-non-markdown' : ''} ${isActive ? 'is-active' : ''}`}
         style={{ paddingLeft: `${8 + depth * 14}px` }}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
         title={entry.path}
       >
         {entry.isDirectory && (
@@ -64,7 +195,15 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
           </svg>
         )}
         {!entry.isDirectory && <span className="file-icon-spacer" />}
-        <span className="file-name">{entry.name}</span>
+        {isRenaming ? (
+          <InlineRenameInput
+            defaultValue={entry.name}
+            onSubmit={(newName) => onFinishRename(entry.path, newName)}
+            onCancel={onCancelRename}
+          />
+        ) : (
+          <span className="file-name">{entry.name}</span>
+        )}
       </div>
       {expanded && entry.isDirectory && (
         <div className="file-tree-children">
@@ -76,6 +215,11 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
               onOpenFile={onOpenFile}
               onSetRoot={onSetRoot}
               refreshKey={refreshKey}
+              activeFilePath={activeFilePath}
+              renamingPath={renamingPath}
+              onFinishRename={onFinishRename}
+              onCancelRename={onCancelRename}
+              onContextMenu={onContextMenu}
             />
           ))}
           {children.length === 0 && (
@@ -89,6 +233,8 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey }) {
   );
 }
 
+// ── Path Helper ──
+
 function truncatePath(fullPath, homeDir) {
   if (homeDir && fullPath.startsWith(homeDir)) {
     return '~' + fullPath.slice(homeDir.length);
@@ -96,10 +242,14 @@ function truncatePath(fullPath, homeDir) {
   return fullPath;
 }
 
-export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpenSettings, width }) {
+// ── Main Component ──
+
+export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpenSettings, width, activeFilePath, onFileRenamed }) {
   const [entries, setEntries] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [homeDir, setHomeDir] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [renamingPath, setRenamingPath] = useState(null);
 
   // Get home directory on mount and default to it if no folder is set
   useEffect(() => {
@@ -149,6 +299,84 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
     }
   }, [folderPath, onSetFolder]);
 
+  // ── Context Menu Actions ──
+
+  const createNewFile = useCallback(async (dirPath) => {
+    let name = 'Untitled.md';
+    let counter = 1;
+    while (await electronAPI.fileExists(dirPath + '/' + name)) {
+      counter++;
+      name = `Untitled ${counter}.md`;
+    }
+    const filePath = dirPath + '/' + name;
+    await electronAPI.createFile(filePath, '');
+    setTimeout(() => setRenamingPath(filePath), 200);
+  }, []);
+
+  const createNewFolder = useCallback(async (dirPath) => {
+    let name = 'New Folder';
+    let counter = 1;
+    while (await electronAPI.fileExists(dirPath + '/' + name)) {
+      counter++;
+      name = `New Folder ${counter}`;
+    }
+    const newPath = dirPath + '/' + name;
+    await electronAPI.createDirectory(newPath);
+    setTimeout(() => setRenamingPath(newPath), 200);
+  }, []);
+
+  const handleContextMenu = useCallback((e, entry) => {
+    const items = [];
+
+    if (entry.isDirectory) {
+      items.push({
+        label: 'New Markdown File',
+        action: () => createNewFile(entry.path),
+      });
+      items.push({
+        label: 'New Folder',
+        action: () => createNewFolder(entry.path),
+      });
+      items.push({ separator: true });
+    }
+
+    items.push({
+      label: 'Rename',
+      action: () => setRenamingPath(entry.path),
+    });
+
+    setContextMenu({ x: e.clientX, y: e.clientY, items });
+  }, [createNewFile, createNewFolder]);
+
+  const handleTreeContextMenu = useCallback((e) => {
+    if (e.target.closest('.file-tree-row')) return;
+    e.preventDefault();
+    if (!folderPath) return;
+
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: 'New Markdown File', action: () => createNewFile(folderPath) },
+        { label: 'New Folder', action: () => createNewFolder(folderPath) },
+      ],
+    });
+  }, [folderPath, createNewFile, createNewFolder]);
+
+  const handleFinishRename = useCallback(async (oldPath, newName) => {
+    if (!newName || !newName.trim() || newName.trim() === oldPath.split('/').pop()) {
+      setRenamingPath(null);
+      return;
+    }
+    const dir = await electronAPI.getDirname(oldPath);
+    const newPath = dir + '/' + newName.trim();
+    const result = await electronAPI.renameFile(oldPath, newPath);
+    setRenamingPath(null);
+    if (result.success && onFileRenamed) {
+      onFileRenamed(oldPath, newPath);
+    }
+  }, [onFileRenamed]);
+
   const displayPath = folderPath ? truncatePath(folderPath, homeDir) : '';
 
   return (
@@ -180,7 +408,7 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
         </div>
       )}
 
-      <div className="file-browser-content">
+      <div className="file-browser-content" onContextMenu={handleTreeContextMenu}>
         {!folderPath ? (
           <div className="file-browser-empty">
             <button className="btn btn-ghost" onClick={handleOpenFolder}>
@@ -197,6 +425,11 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
                 onOpenFile={onOpenFile}
                 onSetRoot={onSetFolder}
                 refreshKey={refreshKey}
+                activeFilePath={activeFilePath}
+                renamingPath={renamingPath}
+                onFinishRename={handleFinishRename}
+                onCancelRename={() => setRenamingPath(null)}
+                onContextMenu={handleContextMenu}
               />
             ))}
           </div>
@@ -213,6 +446,16 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
           </svg>
         </button>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          items={contextMenu.items}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 }

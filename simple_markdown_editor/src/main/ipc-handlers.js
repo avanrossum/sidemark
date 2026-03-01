@@ -119,6 +119,37 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
     return path.dirname(filePath);
   });
 
+  // ── File Management ──
+
+  ipcMain.handle('file:rename', async (_, oldPath, newPath) => {
+    try {
+      fs.renameSync(oldPath, newPath);
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('file:mkdir', async (_, dirPath) => {
+    try {
+      fs.mkdirSync(dirPath, { recursive: true });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('file:create', async (_, filePath, content = '') => {
+    try {
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(filePath, content, 'utf-8');
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
   // ── File Watching ──
 
   ipcMain.handle('watch:file', async (_, filePath) => {
@@ -171,6 +202,17 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
 
   ipcMain.handle('recent:add-file', async (_, filePath) => {
     store.addRecentFile(filePath);
+    return { success: true };
+  });
+
+  // ── Session ──
+
+  ipcMain.handle('session:get', async () => {
+    return store.getSession();
+  });
+
+  ipcMain.handle('session:set', async (_, sessionData) => {
+    store.setSession(sessionData);
     return { success: true };
   });
 

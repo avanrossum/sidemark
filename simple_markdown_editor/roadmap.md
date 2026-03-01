@@ -44,6 +44,10 @@
 - [x] File watching (detect external changes)
 - [x] External change diff view with resolve options
 - [x] File browser auto-refresh on file system changes (including subdirectories)
+- [x] File browser: reveal and highlight active file when switching tabs
+- [x] File browser: right-click context menu (new markdown file, new folder, rename)
+- [x] File browser: inline rename for files and folders
+- [x] Session restore (persist open tabs, active tab, folder path across restarts)
 
 ### Preview
 
@@ -97,7 +101,6 @@
 - [ ] Editor: bracket/quote auto-pairing
 - [ ] Auto-save option (with configurable delay)
 - [ ] File browser: drag to resize width
-- [ ] File browser: right-click context menu (rename, delete, new file)
 - [ ] Export to HTML / PDF
 - [ ] Performance: large file handling
 

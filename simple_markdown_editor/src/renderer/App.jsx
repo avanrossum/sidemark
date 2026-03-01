@@ -26,8 +26,8 @@ function createTab(filePath = null, content = '') {
 }
 
 export default function App() {
-  const [tabs, setTabs] = useState([createTab()]);
-  const [activeTabId, setActiveTabId] = useState(1);
+  const [tabs, setTabs] = useState(null); // null = loading session
+  const [activeTabId, setActiveTabId] = useState(null);
   const [folderPath, setFolderPath] = useState(null);
   const [settings, setSettings] = useState(null);
   const [showSearch, setShowSearch] = useState(false);
@@ -37,8 +37,9 @@ export default function App() {
   const [diffData, setDiffData] = useState(null);
   const [theme, setTheme] = useState('dark');
   const editorRef = useRef(null);
+  const sessionRestoredRef = useRef(false);
 
-  const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
+  const activeTab = tabs?.find((t) => t.id === activeTabId) || tabs?.[0];
 
   // ── Load Settings ──
 
@@ -54,6 +55,72 @@ export default function App() {
     });
     return unsub;
   }, []);
+
+  // ── Session Restore ──
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const session = await electronAPI.getSession();
+      if (cancelled) return;
+
+      let restoredTabs = [];
+
+      if (session?.openFiles?.length > 0) {
+        for (const filePath of session.openFiles) {
+          const exists = await electronAPI.fileExists(filePath);
+          if (!exists) continue;
+          const result = await electronAPI.readFile(filePath);
+          if (!result.success) continue;
+          const stat = await electronAPI.getFileStat(filePath);
+          const tab = createTab(filePath, result.content);
+          tab.savedContent = result.content;
+          tab.lastKnownMtime = stat.success ? stat.mtime : null;
+          restoredTabs.push(tab);
+          electronAPI.watchFile(filePath);
+        }
+      }
+
+      if (restoredTabs.length === 0) {
+        restoredTabs = [createTab()];
+      }
+
+      if (cancelled) return;
+
+      setTabs(restoredTabs);
+
+      const activeFile = session?.activeFile;
+      const activeRestoredTab = restoredTabs.find((t) => t.filePath === activeFile);
+      setActiveTabId(activeRestoredTab ? activeRestoredTab.id : restoredTabs[0].id);
+
+      if (session?.folderPath) {
+        setFolderPath(session.folderPath);
+      }
+
+      sessionRestoredRef.current = true;
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // ── Session Save ──
+
+  useEffect(() => {
+    if (!sessionRestoredRef.current || !tabs) return;
+
+    const timer = setTimeout(() => {
+      const openFiles = tabs.filter((t) => t.filePath).map((t) => t.filePath);
+      const activeFile = tabs.find((t) => t.id === activeTabId)?.filePath || null;
+      electronAPI.setSession({
+        openFiles,
+        activeFile,
+        folderPath: folderPath || null,
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [tabs, activeTabId, folderPath]);
 
   // ── Theme ──
 
@@ -105,7 +172,7 @@ export default function App() {
 
   const openFile = useCallback(async (filePath) => {
     // Check if already open
-    const existing = tabs.find((t) => t.filePath === filePath);
+    const existing = tabs?.find((t) => t.filePath === filePath);
     if (existing) {
       setActiveTabId(existing.id);
       return;
@@ -126,7 +193,7 @@ export default function App() {
   }, [tabs]);
 
   const saveTab = useCallback(async (tabId) => {
-    const tab = tabs.find((t) => t.id === (tabId || activeTabId));
+    const tab = tabs?.find((t) => t.id === (tabId || activeTabId));
     if (!tab) return false;
 
     if (!tab.filePath) {
@@ -153,7 +220,7 @@ export default function App() {
   }, [tabs, activeTabId]);
 
   const saveTabAs = useCallback(async (tabId) => {
-    const tab = tabs.find((t) => t.id === (tabId || activeTabId));
+    const tab = tabs?.find((t) => t.id === (tabId || activeTabId));
     if (!tab) return false;
 
     const result = await electronAPI.showSaveDialog({
@@ -192,7 +259,7 @@ export default function App() {
   }, []);
 
   const closeTab = useCallback(async (tabId) => {
-    const tab = tabs.find((t) => t.id === tabId);
+    const tab = tabs?.find((t) => t.id === tabId);
     if (!tab) return;
 
     // Prompt to save if dirty
@@ -245,6 +312,21 @@ export default function App() {
     setActiveTabId(tab.id);
   }, [activeTab]);
 
+  // ── File Rename Handler ──
+
+  const handleFileRenamed = useCallback((oldPath, newPath) => {
+    setTabs((prev) =>
+      prev.map((t) => {
+        if (t.filePath === oldPath) {
+          electronAPI.unwatchFile(oldPath);
+          electronAPI.watchFile(newPath);
+          return { ...t, filePath: newPath, name: null };
+        }
+        return t;
+      })
+    );
+  }, []);
+
   // ── Content Updates ──
 
   const updateContent = useCallback((tabId, content) => {
@@ -257,6 +339,7 @@ export default function App() {
 
   useEffect(() => {
     const unsub = electronAPI.onFileChanged(async (filePath) => {
+      if (!tabs) return;
       const tab = tabs.find((t) => t.filePath === filePath);
       if (!tab) return;
 
@@ -369,7 +452,7 @@ export default function App() {
     return tab.content !== tab.savedContent;
   }
 
-  if (!settings) return null; // Loading
+  if (!settings || !tabs) return null; // Loading
 
   return (
     <div className="app">
@@ -398,6 +481,8 @@ export default function App() {
           onSetFolder={setFolderPath}
           onOpenSettings={() => setShowSettings(true)}
           width={settings.fileBrowserWidth}
+          activeFilePath={activeTab?.filePath}
+          onFileRenamed={handleFileRenamed}
         />
 
         {/* Editor Column */}

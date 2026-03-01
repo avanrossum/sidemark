@@ -64,6 +64,17 @@ class Store {
     return [...(this._data.settings.recentDirectories || [])];
   }
 
+  // ── Session ──
+
+  getSession() {
+    return this._data.session || null;
+  }
+
+  setSession(sessionData) {
+    this._data.session = sessionData;
+    this._debouncedSave();
+  }
+
   // ── Window Bounds ──
 
   getWindowBounds() {
@@ -83,6 +94,7 @@ class Store {
         const raw = fs.readFileSync(this._filePath, 'utf-8');
         const parsed = JSON.parse(raw);
         this._data.settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
+        this._data.session = parsed.session || null;
       }
     } catch (err) {
       console.error('Failed to load settings:', err);

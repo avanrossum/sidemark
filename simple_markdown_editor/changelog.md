@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Editor font family options switched to system monospace fonts (SF Mono, Menlo, Monaco, Courier New, Andale Mono)
 - Multi-window support: Cmd+Shift+N opens a new independent window
 - Cmd+W closes the active tab instead of the whole window
+- File browser: active file is auto-revealed and highlighted when switching tabs
+- Session restore: open tabs, active tab, and folder path persist across app restarts
+- File browser: right-click context menu with New Markdown File, New Folder, and Rename
+- File browser: inline rename editing for files and folders
+- MIT LICENSE file
 
 ### Changed
 

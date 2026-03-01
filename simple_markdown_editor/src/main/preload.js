@@ -13,6 +13,11 @@ const electronAPI = {
   getBasename: (filePath) => ipcRenderer.invoke('file:basename', filePath),
   getDirname: (filePath) => ipcRenderer.invoke('file:dirname', filePath),
 
+  // ── File Management ──
+  renameFile: (oldPath, newPath) => ipcRenderer.invoke('file:rename', oldPath, newPath),
+  createDirectory: (dirPath) => ipcRenderer.invoke('file:mkdir', dirPath),
+  createFile: (filePath, content) => ipcRenderer.invoke('file:create', filePath, content),
+
   // ── File Watching ──
   watchFile: (filePath) => ipcRenderer.invoke('watch:file', filePath),
   unwatchFile: (filePath) => ipcRenderer.invoke('watch:unwatch-file', filePath),
@@ -98,6 +103,10 @@ const electronAPI = {
     ipcRenderer.on('close-tab', handler);
     return () => ipcRenderer.removeListener('close-tab', handler);
   },
+
+  // ── Session ──
+  getSession: () => ipcRenderer.invoke('session:get'),
+  setSession: (data) => ipcRenderer.invoke('session:set', data),
 
   // ── Dialogs ──
   showMessageBox: (options) => ipcRenderer.invoke('dialog:message-box', options),
