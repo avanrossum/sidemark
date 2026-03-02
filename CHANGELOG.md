@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-03-01
+
+### Added
+
+- Dirty check on window close: prompts to save each unsaved tab before closing the window
+- Close Window shortcut (Cmd+Shift+W) in File menu
+- Formatting toggle: bold, italic, strikethrough, and code buttons now remove formatting if already applied to selection
+- Heading buttons cycle: recognize existing heading level on the line — same level toggles off, different level swaps
+- List buttons work on multi-line selections and toggle off when re-clicked
+- Numbered lists continue numbering from preceding list items
+- List buttons swap type (e.g. select bulleted lines → click numbered → swaps to numbered)
+
 ## [0.1.7] - 2026-03-01
 
 ### Added

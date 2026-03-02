@@ -124,6 +124,14 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
             if (win) win.webContents.send('close-tab');
           },
         },
+        {
+          label: 'Close Window',
+          accelerator: 'CmdOrCtrl+Shift+W',
+          click: () => {
+            const win = getFocusedWindow();
+            if (win) win.close(); // Triggers close handler → dirty check
+          },
+        },
       ],
     },
     {

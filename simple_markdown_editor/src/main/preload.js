@@ -105,6 +105,13 @@ const electronAPI = {
     ipcRenderer.on('close-tab', handler);
     return () => ipcRenderer.removeListener('close-tab', handler);
   },
+  onCloseWindow: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('close-window', handler);
+    return () => ipcRenderer.removeListener('close-window', handler);
+  },
+  confirmCloseWindow: () => ipcRenderer.invoke('window:confirm-close'),
+  cancelCloseWindow: () => ipcRenderer.invoke('window:cancel-close'),
 
   // ── Session (per-window) ──
   getSession: (windowId) => ipcRenderer.invoke('session:get', windowId),

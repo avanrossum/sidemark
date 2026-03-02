@@ -179,49 +179,219 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme }
       const hasSelection = from !== to;
       const selected = hasSelection ? view.state.sliceDoc(from, to) : '';
 
-      let insert;
-      let cursorPos;
-
+      // ── Insert (hr) ──
       if (fmt.insert) {
-        insert = fmt.insert;
-        cursorPos = from + insert.length;
-      } else if (fmt.wrap) {
-        if (hasSelection) {
-          insert = `${fmt.wrap}${selected}${fmt.wrap}`;
-          cursorPos = from + insert.length;
-        } else {
-          insert = `${fmt.wrap}${fmt.wrap}`;
-          cursorPos = from + fmt.wrap.length;
-        }
-      } else if (fmt.prefix) {
-        const line = view.state.doc.lineAt(from);
-        insert = `${fmt.prefix}${hasSelection ? selected : ''}`;
         view.dispatch({
-          changes: { from: line.from, to: hasSelection ? to : line.from, insert },
-          selection: { anchor: line.from + insert.length },
+          changes: { from, to, insert: fmt.insert },
+          selection: { anchor: from + fmt.insert.length },
         });
         view.focus();
         return;
-      } else if (fmt.blockWrap) {
-        if (hasSelection) {
-          insert = `${fmt.blockWrap}${selected}${fmt.blockWrapEnd}`;
-          cursorPos = from + insert.length;
-        } else {
-          insert = `${fmt.blockWrap}${fmt.blockWrapEnd}`;
-          cursorPos = from + fmt.blockWrap.length;
-        }
-      } else if (fmt.template) {
-        const text = hasSelection ? selected : fmt.placeholder;
-        insert = fmt.template.replace('${text}', text);
-        cursorPos = from + insert.length;
       }
 
-      if (insert !== undefined) {
+      // ── Wrap formatting (bold, italic, strikethrough, code) — toggleable ──
+      if (fmt.wrap) {
+        const marker = fmt.wrap;
+        if (hasSelection) {
+          // Check if markers exist around the selection
+          const beforeStart = Math.max(0, from - marker.length);
+          const afterEnd = Math.min(view.state.doc.length, to + marker.length);
+          const before = view.state.sliceDoc(beforeStart, from);
+          const after = view.state.sliceDoc(to, afterEnd);
+
+          if (before === marker && after === marker) {
+            // Remove wrapping markers around selection
+            view.dispatch({
+              changes: [
+                { from: beforeStart, to: from, insert: '' },
+                { from: to, to: afterEnd, insert: '' },
+              ],
+              selection: { anchor: beforeStart, head: to - marker.length },
+            });
+          } else if (selected.startsWith(marker) && selected.endsWith(marker) && selected.length >= marker.length * 2) {
+            // Selection includes the markers — strip them
+            const inner = selected.slice(marker.length, -marker.length);
+            view.dispatch({
+              changes: { from, to, insert: inner },
+              selection: { anchor: from, head: from + inner.length },
+            });
+          } else {
+            // Add wrapping
+            const insert = `${marker}${selected}${marker}`;
+            view.dispatch({
+              changes: { from, to, insert },
+              selection: { anchor: from, head: from + insert.length },
+            });
+          }
+        } else {
+          // No selection — insert empty markers and position cursor between
+          view.dispatch({
+            changes: { from, to, insert: `${marker}${marker}` },
+            selection: { anchor: from + marker.length },
+          });
+        }
+        view.focus();
+        return;
+      }
+
+      // ── Prefix formatting (headings, quotes, lists) — smart toggle ──
+      if (fmt.prefix) {
+        const startLine = view.state.doc.lineAt(from);
+        const endLine = hasSelection ? view.state.doc.lineAt(Math.max(from, to - 1)) : startLine;
+
+        const lines = [];
+        for (let i = startLine.number; i <= endLine.number; i++) {
+          lines.push(view.state.doc.line(i));
+        }
+
+        const isHeading = ['h1', 'h2', 'h3'].includes(action);
+        const isList = ['ul', 'ol'].includes(action);
+
+        if (isHeading) {
+          // ── Headings: cycle levels, toggle off ──
+          const targetLevel = action === 'h1' ? 1 : action === 'h2' ? 2 : 3;
+          const headingMatch = startLine.text.match(/^(#{1,6})\s/);
+          const currentLevel = headingMatch ? headingMatch[1].length : 0;
+
+          if (currentLevel === targetLevel) {
+            // Same level → remove heading from all selected lines
+            const changes = [];
+            for (const line of lines) {
+              const match = line.text.match(/^#{1,6}\s/);
+              if (match) {
+                changes.push({ from: line.from, to: line.from + match[0].length, insert: '' });
+              }
+            }
+            if (changes.length > 0) view.dispatch({ changes });
+          } else {
+            // Different level or no heading → set to target level
+            const newPrefix = '#'.repeat(targetLevel) + ' ';
+            const changes = lines.map((line) => {
+              const match = line.text.match(/^#{1,6}\s/);
+              if (match) {
+                return { from: line.from, to: line.from + match[0].length, insert: newPrefix };
+              }
+              return { from: line.from, to: line.from, insert: newPrefix };
+            });
+            view.dispatch({ changes });
+          }
+        } else if (isList) {
+          // ── Lists: multi-line, toggle, swap, continue numbering ──
+          const isUl = action === 'ul';
+
+          // Check what each line currently has
+          const lineStates = lines.map((line) => {
+            const ulMatch = line.text.match(/^- /);
+            const olMatch = line.text.match(/^(\d+)\.\s/);
+            return {
+              line,
+              isUl: !!ulMatch,
+              isOl: !!olMatch,
+              olNum: olMatch ? parseInt(olMatch[1], 10) : 0,
+              prefixLen: ulMatch ? 2 : (olMatch ? olMatch[0].length : 0),
+            };
+          });
+
+          const allMatchType = isUl
+            ? lineStates.every((s) => s.isUl)
+            : lineStates.every((s) => s.isOl);
+
+          if (allMatchType) {
+            // All lines already have this list type → toggle off (remove)
+            const changes = lineStates.map((s) => ({
+              from: s.line.from,
+              to: s.line.from + s.prefixLen,
+              insert: '',
+            }));
+            view.dispatch({ changes });
+          } else {
+            // Apply list (add or swap type)
+            let startNum = 1;
+            if (!isUl) {
+              // Continue numbering from preceding list items
+              if (startLine.number > 1) {
+                const prevLine = view.state.doc.line(startLine.number - 1);
+                const prevMatch = prevLine.text.match(/^(\d+)\.\s/);
+                if (prevMatch) {
+                  startNum = parseInt(prevMatch[1], 10) + 1;
+                }
+              }
+            }
+
+            const changes = lineStates.map((s, idx) => {
+              const newPrefix = isUl ? '- ' : `${startNum + idx}. `;
+              return {
+                from: s.line.from,
+                to: s.line.from + s.prefixLen,
+                insert: newPrefix,
+              };
+            });
+            view.dispatch({ changes });
+          }
+        } else {
+          // ── Quote or other prefix — toggle ──
+          const allHavePrefix = lines.every((line) => line.text.startsWith(fmt.prefix));
+
+          if (allHavePrefix) {
+            const changes = lines.map((line) => ({
+              from: line.from,
+              to: line.from + fmt.prefix.length,
+              insert: '',
+            }));
+            view.dispatch({ changes });
+          } else {
+            const changes = lines.map((line) => ({
+              from: line.from,
+              to: line.from,
+              insert: fmt.prefix,
+            }));
+            view.dispatch({ changes });
+          }
+        }
+
+        view.focus();
+        return;
+      }
+
+      // ── Block wrap (code block) — toggleable ──
+      if (fmt.blockWrap) {
+        if (hasSelection) {
+          const trimmed = selected.trim();
+          if (trimmed.startsWith(fmt.blockWrap.trim()) && trimmed.endsWith(fmt.blockWrapEnd.trim())) {
+            // Remove code block wrapping
+            const inner = trimmed.slice(fmt.blockWrap.trim().length, trimmed.length - fmt.blockWrapEnd.trim().length).trim();
+            view.dispatch({
+              changes: { from, to, insert: inner },
+              selection: { anchor: from + inner.length },
+            });
+          } else {
+            const insert = `${fmt.blockWrap}${selected}${fmt.blockWrapEnd}`;
+            view.dispatch({
+              changes: { from, to, insert },
+              selection: { anchor: from + insert.length },
+            });
+          }
+        } else {
+          const insert = `${fmt.blockWrap}${fmt.blockWrapEnd}`;
+          view.dispatch({
+            changes: { from, to, insert },
+            selection: { anchor: from + fmt.blockWrap.length },
+          });
+        }
+        view.focus();
+        return;
+      }
+
+      // ── Template (link, image) ──
+      if (fmt.template) {
+        const text = hasSelection ? selected : fmt.placeholder;
+        const insert = fmt.template.replace('${text}', text);
         view.dispatch({
           changes: { from, to, insert },
-          selection: { anchor: cursorPos },
+          selection: { anchor: from + insert.length },
         });
         view.focus();
+        return;
       }
     },
 

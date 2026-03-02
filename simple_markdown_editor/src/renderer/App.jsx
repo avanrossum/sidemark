@@ -325,6 +325,45 @@ export default function App() {
     setActiveTabId(tab.id);
   }, [activeTab]);
 
+  // ── Close Window (with dirty checks) ──
+
+  const closeWindow = useCallback(async () => {
+    if (!tabs) {
+      electronAPI.confirmCloseWindow();
+      return;
+    }
+
+    const dirtyTabs = tabs.filter((t) => t.content !== t.savedContent);
+
+    for (const tab of dirtyTabs) {
+      const result = await electronAPI.showMessageBox({
+        type: 'warning',
+        buttons: ['Save', "Don't Save", 'Cancel'],
+        defaultId: 0,
+        cancelId: 2,
+        message: `Do you want to save changes to "${getTabName(tab)}"?`,
+        detail: 'Your changes will be lost if you close without saving.',
+      });
+
+      if (result.response === 0) {
+        // Save — abort close if save was canceled
+        const saved = await saveTab(tab.id);
+        if (!saved) {
+          electronAPI.cancelCloseWindow();
+          return;
+        }
+      } else if (result.response === 2) {
+        // Cancel — abort close
+        electronAPI.cancelCloseWindow();
+        return;
+      }
+      // response === 1 means Don't Save — continue to next dirty tab
+    }
+
+    // All dirty tabs resolved — confirm close
+    electronAPI.confirmCloseWindow();
+  }, [tabs, saveTab]);
+
   // ── File Rename Handler ──
 
   const handleFileRenamed = useCallback((oldPath, newPath) => {
@@ -460,9 +499,10 @@ export default function App() {
       electronAPI.onShowSettings(() => setShowSettings(true)),
       electronAPI.onShowAbout(() => setShowAbout(true)),
       electronAPI.onCloseTab(() => closeTab(activeTabId)),
+      electronAPI.onCloseWindow(() => closeWindow()),
     ];
     return () => unsubs.forEach((fn) => fn());
-  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile, closeTab, activeTabId]);
+  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile, closeTab, closeWindow, activeTabId]);
 
   // ── Toolbar Actions ──
 

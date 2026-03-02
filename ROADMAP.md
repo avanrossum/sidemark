@@ -16,6 +16,8 @@
 - [x] Cmd+W closes tab (not window)
 - [x] New window (Cmd+Shift+N) opens fresh (empty Untitled tab, no restored state)
 - [x] Multi-window session restore (all open windows preserved and restored on quit/relaunch)
+- [x] Dirty check on window close (prompt to save unsaved tabs before closing window)
+- [x] Close Window shortcut (Cmd+Shift+W)
 
 ### Editor
 
@@ -23,6 +25,11 @@
 - [x] Markdown syntax highlighting
 - [x] Formatting toolbar (bold, italic, strikethrough, headings, lists, code, links, images, hr)
 - [x] Toolbar works with selection (wrap) and without (insert markers)
+- [x] Formatting toggle: wrap buttons (bold, italic, etc.) remove formatting if already applied
+- [x] Heading buttons cycle: recognize existing heading, shift level, toggle off if same
+- [x] List buttons: multi-line support (apply to all selected lines, toggle off on re-click)
+- [x] Numbered lists: continue numbering from preceding list items
+- [x] List buttons: swap type (e.g. bullet → numbered) when re-clicking with different type
 - [x] Line numbers (toggleable)
 - [x] Word wrap (toggleable)
 - [x] Search and replace (Cmd+F, Cmd+H)

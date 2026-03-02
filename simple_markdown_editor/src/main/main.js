@@ -1,4 +1,4 @@
-const { app, BrowserWindow, nativeTheme, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeTheme, protocol, net } = require('electron');
 const path = require('path');
 const Store = require('./store');
 const FileWatcher = require('./file-watcher');
@@ -56,8 +56,9 @@ function createWindow(options = {}) {
     },
   });
 
-  // Tag window with its session ID
+  // Tag window with its session ID and close state
   win._windowId = id;
+  win._forceClose = false;
   windows.add(win);
 
   // Build URL with window ID and fresh flag
@@ -88,6 +89,13 @@ function createWindow(options = {}) {
 
   win.on('resize', saveBounds);
   win.on('move', saveBounds);
+
+  // Intercept close to check for unsaved tabs
+  win.on('close', (e) => {
+    if (win._forceClose) return; // Already confirmed — allow close
+    e.preventDefault();
+    win.webContents.send('close-window');
+  });
 
   win.on('closed', () => {
     windows.delete(win);
@@ -178,6 +186,22 @@ app.whenReady().then(() => {
   } else {
     createWindow();
   }
+
+  // ── Window Close Confirmation IPC ──
+  // (registered here because they need access to isQuitting)
+
+  ipcMain.handle('window:confirm-close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win && !win.isDestroyed()) {
+      win._forceClose = true;
+      win.close();
+    }
+  });
+
+  ipcMain.handle('window:cancel-close', () => {
+    // If the quit sequence was in progress and user canceled, reset the flag
+    isQuitting = false;
+  });
 
   registerIpcHandlers({
     store,
