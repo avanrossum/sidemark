@@ -117,18 +117,6 @@ export default function Settings({ settings: initialSettings, onClose }) {
           </div>
 
           <div className="settings-row">
-            <label>Word wrap</label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.editorWordWrap}
-                onChange={(e) => updateSetting('editorWordWrap', e.target.checked)}
-              />
-              <span className="toggle-slider" />
-            </label>
-          </div>
-
-          <div className="settings-row">
             <label>Line numbers</label>
             <label className="toggle">
               <input
@@ -140,17 +128,6 @@ export default function Settings({ settings: initialSettings, onClose }) {
             </label>
           </div>
 
-          <div className="settings-row">
-            <label>Spell check</label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={settings.spellCheck}
-                onChange={(e) => updateSetting('spellCheck', e.target.checked)}
-              />
-              <span className="toggle-slider" />
-            </label>
-          </div>
         </div>
 
         {/* ── About ── */}

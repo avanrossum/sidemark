@@ -2,7 +2,7 @@
 
 A stupid simple markdown editor for macOS. Fast, focused, and free of bloat.
 
-Built with Electron, React, and CodeMirror 6. No Electron tax — just a clean three-pane layout that gets out of your way.
+Built with Electron, React, and CodeMirror 6. A clean three-pane layout that gets out of your way.
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -12,7 +12,7 @@ Built with Electron, React, and CodeMirror 6. No Electron tax — just a clean t
 - CodeMirror 6 with markdown syntax highlighting
 - Formatting toolbar — bold, italic, strikethrough, headings, lists, code blocks, links, images, horizontal rules
 - Search and replace (Cmd+F / Cmd+H)
-- Toggleable line numbers, word wrap, and spell check
+- Toggleable line numbers
 
 **Preview**
 - Live markdown preview with GitHub Flavored Markdown
@@ -85,7 +85,7 @@ The application source lives in the `simple_markdown_editor/` subdirectory. This
 
 ## Status
 
-v0.1.8 is feature-complete but currently untested and unreviewed. Incremental code review and testing will be completed before work on v0.2.0 begins. See [ROADMAP.md](ROADMAP.md) for what's planned.
+v0.1.9 is feature-complete but currently untested and unreviewed. Incremental code review and testing will be completed before work on v0.2.0 begins. See [ROADMAP.md](ROADMAP.md) for what's planned.
 
 ## License
 

@@ -31,7 +31,6 @@
 - [x] Numbered lists: continue numbering from preceding list items
 - [x] List buttons: swap type (e.g. bullet → numbered) when re-clicking with different type
 - [x] Line numbers (toggleable)
-- [x] Word wrap (toggleable)
 - [x] Search and replace (Cmd+F, Cmd+H)
 
 ### File Management
@@ -77,7 +76,7 @@
 - [x] Fix: editor font family setting not applying to CodeMirror
 - [x] Preview font family selector (system fonts)
 - [x] Theme selector: segmented control (Dark / Light / System)
-- [x] Toggle: word wrap, line numbers, spell check
+- [x] Toggle: line numbers
 - [x] About section with links to mipyip.com and GitHub
 - [x] Settings gear in file browser footer
 

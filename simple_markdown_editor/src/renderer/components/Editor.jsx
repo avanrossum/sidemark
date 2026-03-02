@@ -29,6 +29,8 @@ function buildEditorTheme(isDark, fontSize, fontFamily) {
       padding: '12px 16px',
       caretColor: 'var(--accent)',
       lineHeight: '1.6',
+      fontFamily: resolvedFont,
+      fontSize: resolvedSize,
     },
     '.cm-cursor': {
       borderLeftColor: 'var(--accent)',
@@ -51,6 +53,7 @@ function buildEditorTheme(isDark, fontSize, fontFamily) {
     },
     '.cm-scroller': {
       overflow: 'auto',
+      fontFamily: resolvedFont,
     },
     '&.cm-focused': {
       outline: 'none',

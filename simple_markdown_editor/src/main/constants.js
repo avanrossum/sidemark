@@ -32,8 +32,6 @@ const DEFAULT_SETTINGS = {
   accentColor: 'blue',
   fontSize: 14,
   fontFamily: 'default',
-  editorWordWrap: true,
-  spellCheck: true,
   showLineNumbers: true,
   autoSave: false,
   autoSaveDelay: 5000,

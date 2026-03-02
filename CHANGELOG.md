@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-03-01
+
+### Fixed
+
+- Editor font: explicitly set font-family on CodeMirror content and scroller elements (attempt to fix font not applying)
+
+### Removed
+
+- Spell check setting (was never wired to CodeMirror; removed toggle from settings)
+- Word wrap setting (was never wired to CodeMirror; word wrap is now always on)
+
 ## [0.1.8] - 2026-03-01
 
 ### Added
@@ -115,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File watching via chokidar: detects external changes to open files
 - External change resolution: diff view with options to keep current, save as new, or accept external
 - Search and replace (Cmd+F / Cmd+H) with case sensitivity toggle, match count, navigation
-- Settings panel: theme (dark/light/system), accent color (7 options), font size, font family, word wrap, line numbers, spell check
+- Settings panel: theme (dark/light/system), accent color (7 options), font size, font family, line numbers
 - About section with links to mipyip.com and GitHub
 - Dark and light themes following design standards
 - CSS custom properties theming system with 7 accent color options
