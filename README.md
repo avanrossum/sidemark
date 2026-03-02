@@ -14,7 +14,7 @@ I live in markdown daily. Every editor I tried was either too expensive, too slo
 
 Grab the latest `.dmg` from [GitHub Releases](https://github.com/avanrossum/a_simple_markdown_editor/releases/latest). Open it, drag to Applications, done.
 
-Signed and notarized with Apple — no Gatekeeper warnings. macOS 12+ required. Intel and Apple Silicon supported.
+Signed and notarized with Apple — no Gatekeeper warnings. macOS 12+ required. Apple Silicon supported.
 
 ## Screenshots
 
