@@ -138,12 +138,12 @@
 
 ---
 
-## v0.1.12 — Preview Header & Scroll Fix
+## v0.1.23–0.1.24 — Preview Header & Scroll Fix
 
-> Status: **Planned**
+> Status: **Complete**
 
-- [ ] Preview pane header bar: show full file path in the empty space above the preview (mirrors toolbar height), with "Show in Finder" and "Copy Path" buttons
-- [ ] Scroll sync fix: when scrolling editor to the very top, preview should also scroll to top — currently the first 1-2 lines (e.g. `# Title`) are cut off in preview until manually scrolled
+- [x] Preview pane header bar: show full file path in the empty space above the preview (mirrors toolbar height), with "Show in Finder" and "Copy Path" buttons
+- [x] Scroll sync fix: when scrolling editor to the very top, preview should also scroll to top — snaps to 0 when sourceScroll ≤ 0
 
 ---
 
