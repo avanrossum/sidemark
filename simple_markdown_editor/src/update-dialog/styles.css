@@ -134,38 +134,12 @@ body {
 }
 
 /* ── Action Buttons ── */
+@import '../renderer/styles/buttons.css';
+
 .update-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-}
-
-.btn {
-  font-family: var(--font-system);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  background: var(--button-bg);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.btn:hover {
-  background: var(--button-hover);
-}
-
-.btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
 }
 
 /* ── Scrollbar ── */
