@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.32] - 2026-03-02
+
+### Changed
+
+- Repository renamed from `a_simple_markdown_editor` to `a-simple-markdown-editor`
+- Updated auto-updater publish config and README links to match new repo name
+- Replaced broken dynamic download badge with static badge
+
 ## [0.1.31] - 2026-03-02
 
 ### Fixed
