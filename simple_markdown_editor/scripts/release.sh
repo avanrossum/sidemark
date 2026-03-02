@@ -6,6 +6,7 @@ set -e
 if [ -z "$APPLE_ID" ] || [ -z "$APPLE_APP_SPECIFIC_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
   echo "Error: Missing signing environment variables."
   echo "Required: APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID"
+  echo "Add these to your ~/.zshrc or ~/.zprofile"
   exit 1
 fi
 
@@ -39,26 +40,26 @@ git push origin main --tags
 
 echo "Creating GitHub release..."
 
-# Extract changelog for this version
-CHANGELOG_NOTES=$(sed -n "/^## \[${VERSION}\]/,/^## \[/p" ../CHANGELOG.md | head -n -1 | tail -n +2)
+# Extract changelog for this version (macOS-compatible, no head -n -1)
+CHANGELOG_NOTES=$(sed -n "/^## \[${VERSION}\]/,/^## \[/{/^## \[${VERSION}\]/d;/^## \[/d;p;}" ../CHANGELOG.md)
 
 if [ -z "$CHANGELOG_NOTES" ]; then
   CHANGELOG_NOTES="Release v${VERSION}"
 fi
 
-# Find the built artifacts (DMG for download, ZIP + YML for auto-update)
-DMG_FILE=$(ls dist/*.dmg 2>/dev/null | head -1)
-ZIP_FILE=$(ls dist/*.zip 2>/dev/null | head -1)
-YML_FILE=$(ls dist/latest-mac.yml 2>/dev/null | head -1)
+# Find built artifacts (quote paths for filenames with spaces)
+DMG_FILE=$(find dist -maxdepth 1 -name "*${VERSION}*.dmg" -print -quit)
+ZIP_FILE=$(find dist -maxdepth 1 -name "*${VERSION}*.zip" -print -quit)
+YML_FILE="dist/latest-mac.yml"
 
-RELEASE_FILES=""
-[ -n "$DMG_FILE" ] && RELEASE_FILES="$RELEASE_FILES $DMG_FILE"
-[ -n "$ZIP_FILE" ] && RELEASE_FILES="$RELEASE_FILES $ZIP_FILE"
-[ -n "$YML_FILE" ] && RELEASE_FILES="$RELEASE_FILES $YML_FILE"
+RELEASE_ARGS=()
+[ -n "$DMG_FILE" ] && RELEASE_ARGS+=("$DMG_FILE")
+[ -n "$ZIP_FILE" ] && RELEASE_ARGS+=("$ZIP_FILE")
+[ -f "$YML_FILE" ] && RELEASE_ARGS+=("$YML_FILE")
 
 gh release create "v${VERSION}" \
   --title "v${VERSION}" \
   --notes "$CHANGELOG_NOTES" \
-  $RELEASE_FILES
+  "${RELEASE_ARGS[@]}"
 
 echo "Release v${VERSION} complete!"
