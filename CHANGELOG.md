@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.28] - 2026-03-02
+
+### Added
+
+- File associations: app registers as handler for `.md`, `.markdown`, `.mdown`, `.mkd`, `.mkdn`, `.mdwn`, `.mdx`, `.txt` — shows in Finder "Open With" menu
+
+### Fixed
+
+- README download/badge links pointing to wrong GitHub repo
+
 ## [0.1.27] - 2026-03-02
 
 ### Fixed

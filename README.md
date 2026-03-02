@@ -4,12 +4,12 @@ A stupid simple markdown editor for macOS. Fast, focused, and free of bloat.
 
 I live in markdown daily. Every app I tried was either bloated, expensive, or buggy — so I built the editor I actually wanted to use. No account required, no subscription, no electron-sized feature creep. Just a clean editor, a live preview, and a file browser that stays out of your way.
 
-[![Download](https://img.shields.io/github/v/release/avanrossum/simple-markdown-editor?label=Download&color=blue)](https://github.com/avanrossum/simple-markdown-editor/releases/latest)
+[![Download](https://img.shields.io/github/v/release/avanrossum/a_simple_markdown_editor?label=Download&color=blue)](https://github.com/avanrossum/a_simple_markdown_editor/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Download
 
-Grab the latest `.dmg` from [GitHub Releases](https://github.com/avanrossum/simple-markdown-editor/releases/latest). Open it, drag to Applications, done.
+Grab the latest `.dmg` from [GitHub Releases](https://github.com/avanrossum/a_simple_markdown_editor/releases/latest). Open it, drag to Applications, done.
 
 macOS only. Requires macOS 12+.
 
@@ -33,7 +33,7 @@ macOS only. Requires macOS 12+.
 
 ## What it doesn't do
 
-No cloud sync. No collaboration. No plugin system. No Vim mode. No WYSIWYG. No proprietary format lock-in.
+No cloud sync. No collaboration. No plugin system. No Vim mode. No proprietary format lock-in.
 
 Your files are markdown on disk. Open them with anything, anywhere, forever.
 
