@@ -288,6 +288,16 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
   });
 
   ipcMain.handle('app:open-external', async (_, url) => {
+    // Only allow safe URL schemes
+    try {
+      const parsed = new URL(url);
+      const allowed = ['https:', 'http:', 'mailto:'];
+      if (!allowed.includes(parsed.protocol)) {
+        return { success: false, error: `Blocked URL scheme: ${parsed.protocol}` };
+      }
+    } catch {
+      return { success: false, error: 'Invalid URL' };
+    }
     await shell.openExternal(url);
     return { success: true };
   });
