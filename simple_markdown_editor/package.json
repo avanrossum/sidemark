@@ -1,6 +1,6 @@
 {
   "name": "simple-markdown-editor",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "A stupid simple markdown editor",
   "main": "src/main/main.js",
   "author": {
@@ -20,6 +20,7 @@
   "dependencies": {
     "chokidar": "^4.0.0",
     "diff": "^7.0.0",
+    "dompurify": "^3.3.1",
     "electron-updater": "^6.3.0",
     "marked": "^15.0.0"
   },

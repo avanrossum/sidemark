@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useMemo, useCallback } from 'react';
 import { Marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 // ── Marked instance with source-line annotations ──
 
@@ -145,8 +146,13 @@ export default function Preview({ content, theme, editorRef, filePath }) {
     return parts.join('/');
   }, [filePath]);
 
-  // Parse markdown with source line annotations
-  const html = useMemo(() => annotatedMd.parse(content, baseDir), [content, baseDir]);
+  // Parse markdown with source line annotations, then sanitize
+  const html = useMemo(() => {
+    const raw = annotatedMd.parse(content, baseDir);
+    return DOMPurify.sanitize(raw, {
+      ADD_ATTR: ['data-source-line'],
+    });
+  }, [content, baseDir]);
 
   // ── Build Anchor Map ──
 

@@ -1,24 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 const { updateAPI } = window;
 
 // Configure marked for safe output
 marked.setOptions({ breaks: true, gfm: true });
-
-// ── HTML Sanitizer ──
-// Allow only safe tags, strip event handlers and scripts
-function sanitizeHtml(html) {
-  const allowedTags = /^(p|br|strong|em|b|i|ul|ol|li|a|code|pre|h[1-6]|blockquote|hr|div|span)$/i;
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi, (match, tag) => {
-      if (allowedTags.test(tag)) {
-        return match.replace(/\s(on\w+|style|class)="[^"]*"/gi, '');
-      }
-      return '';
-    });
-}
 
 // ── Title Map ──
 const TITLES = {
@@ -67,7 +54,7 @@ export default function UpdateDialog() {
     if (!data?.releaseNotes) return '';
     const raw = data.releaseNotes.trim();
     const html = raw.startsWith('<') ? raw : marked.parse(raw);
-    return sanitizeHtml(html);
+    return DOMPurify.sanitize(html);
   }, [data?.releaseNotes]);
 
   if (!data) return null;
