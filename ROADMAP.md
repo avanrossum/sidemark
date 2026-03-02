@@ -101,34 +101,34 @@
 
 ---
 
-## v0.1.11 — Security Hardening
+## v0.1.11–0.1.22 — Security Hardening
 
-> Status: **Planned** — Priority: **IMMEDIATE** (before any wider distribution)
+> Status: **Complete** (Critical, High, Medium all resolved)
 > Source: Adversarial code review (`The_Adversary/reviews/markdown_editor/REPORT.md`)
 
 ### Critical (Attack Chain: malicious .md → full filesystem compromise)
 
-- [ ] **C1.** XSS via unsanitized markdown preview — `Preview.jsx` uses `dangerouslySetInnerHTML` with raw `marked` output; any `.md` file with embedded `<script>` or event handlers executes in renderer context. **Fix:** Add DOMPurify before rendering.
-- [ ] **C2.** Unrestricted filesystem access via IPC — `file:read`, `file:write`, `file:rename`, `file:create`, `file:mkdir`, `file:trash` accept arbitrary paths with zero validation. **Fix:** Path validation restricting ops to workspace/open-file directories.
-- [ ] **C3.** Path traversal in `local-resource://` protocol — no validation, can serve any file on disk (e.g. `local-resource:///etc/passwd`). **Fix:** Restrict to workspace directory + image extensions only.
-- [ ] **C5.** `shell.openExternal` accepts arbitrary URL schemes — no validation before passing to OS. **Fix:** Allowlist `https://`, `http://`, `mailto:` only.
+- [x] **C1.** XSS via unsanitized markdown preview — added DOMPurify before `dangerouslySetInnerHTML`
+- [x] **C2.** Unrestricted filesystem access via IPC — added `isPathAllowed()` validation (home + /Volumes, blocks .ssh/.gnupg/.aws etc.)
+- [x] **C3.** Path traversal in `local-resource://` protocol — restricted to image extensions under home/Volumes
+- [x] **C5.** `shell.openExternal` arbitrary schemes — allowlisted `https:`, `http:`, `mailto:` only
 
 ### High
 
-- [ ] **H1.** Bypassable regex HTML sanitizer in `UpdateDialog.jsx` — single-quoted attrs, no-quote attrs, `javascript:` hrefs all bypass it. **Fix:** Replace with DOMPurify.
-- [ ] **H2.** `sandbox: false` on main BrowserWindow — comment says "needed for chokidar in preload" but chokidar runs in main process. **Fix:** Enable `sandbox: true`, verify IPC still works.
-- [ ] **H3.** Missing CSP on settings window (`src/settings/index.html`) and update dialog. **Fix:** Add same CSP meta tag as main renderer.
-- [ ] **H4.** `file:resolve-path` IPC handler exposes `path.resolve()` to renderer — aids path traversal. **Fix:** Remove; do path resolution in main process only.
-- [ ] **H6.** No debounce on preview rendering — `marked.parse()` runs on every keystroke. **Fix:** Add 150-300ms debounce.
+- [x] **H1.** Bypassable regex sanitizer in `UpdateDialog.jsx` — replaced with DOMPurify
+- [x] **H2.** `sandbox: false` on main BrowserWindow — enabled `sandbox: true` (chokidar runs in main, not preload)
+- [x] **H3.** Missing CSP on settings window — removed dead standalone entry; tightened update dialog CSP
+- [x] **H4.** `file:resolve-path` exposed `path.resolve()` — removed (was never called from renderer)
+- [x] **H5.** Entitlements: verified all 3 (allow-jit, unsigned-executable-memory, disable-library-validation) are required for Electron
+- [x] **H6.** No debounce on preview rendering — added 150ms debounce
 
 ### Medium (Code Quality)
 
-- [ ] **M1.** Duplicate CSS button styles across `app.css` and `update-dialog/styles.css` — extract shared styles
-- [ ] **M2.** Test artifact `Architecture_test_second_save.md` in repo root — delete it
-- [ ] **M3.** Unused settings standalone window entry point (`src/settings/index.html`, `index.jsx`) — remove
-- [ ] **M4.** `release.sh` uses `git add -A` — replace with explicit file staging
-- [ ] **M5.** `buildAnchorMap()` rebuilt on every scroll — cache and rebuild only on content change
-- [ ] **H5.** Entitlements: verify `disable-library-validation` is actually required, remove if not
+- [x] **M1.** Duplicate CSS button styles — extracted to shared `buttons.css`
+- [x] **M2.** Test artifact `Architecture_test_second_save.md` — deleted
+- [x] **M3.** Unused settings standalone entry point — removed `index.html` + `index.jsx`
+- [x] **M4.** `release.sh` `git add -A` — replaced with explicit `package.json package-lock.json` staging
+- [x] **M5.** `buildAnchorMap()` rebuilt on every scroll — cached in ref, rebuilt only on content change
 
 ### Low / Deferred
 
