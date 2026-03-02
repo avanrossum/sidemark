@@ -368,10 +368,29 @@ function setupAutoUpdater() {
 
 app.whenReady().then(() => {
   // Handle local-resource:// protocol for preview images
+  // Restricted to image files under home directory (defense-in-depth)
+  const ALLOWED_IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.ico', '.avif']);
+  const protocolHomeDir = require('os').homedir();
+
   protocol.handle('local-resource', (request) => {
     const url = new URL(request.url);
     const filePath = decodeURIComponent(url.pathname);
-    return net.fetch(`file://${filePath}`);
+    const resolved = path.resolve(filePath);
+
+    // Must be under home directory or /Volumes
+    const underHome = resolved.startsWith(protocolHomeDir + '/');
+    const underVolumes = resolved.startsWith('/Volumes/');
+    if (!underHome && !underVolumes) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
+    // Must be an image file
+    const ext = path.extname(resolved).toLowerCase();
+    if (!ALLOWED_IMAGE_EXTS.has(ext)) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
+    return net.fetch(`file://${resolved}`);
   });
 
   // Restore windows from saved sessions, or create a fresh default window
