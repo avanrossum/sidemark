@@ -5,10 +5,16 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   base: './',
-  root: 'src/renderer',
+  root: '.',
   build: {
-    outDir: '../../dist-renderer/main',
+    outDir: 'dist-renderer',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'src/renderer/index.html'),
+        'update-dialog': resolve(__dirname, 'src/update-dialog/index.html'),
+      },
+    },
   },
   resolve: {
     alias: {

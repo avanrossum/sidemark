@@ -1,10 +1,11 @@
-const { app, BrowserWindow, ipcMain, nativeTheme, protocol, net } = require('electron');
+const { app, BrowserWindow, ipcMain, nativeTheme, protocol, net, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const Store = require('./store');
 const FileWatcher = require('./file-watcher');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { buildAndSetMenu } = require('./menu');
-const { THEME_BG_COLORS, WINDOW_DEFAULTS, TIMING } = require('./constants');
+const { THEME_BG_COLORS, WINDOW_DEFAULTS, UPDATE_DIALOG_SIZE, TIMING } = require('./constants');
 
 // ── Register custom protocol for local file access (must be before ready) ──
 protocol.registerSchemesAsPrivileged([
@@ -19,14 +20,22 @@ const isDev = process.argv.includes('--dev');
 let windowIdCounter = 0;
 let isQuitting = false;
 
+// ── Auto-Update State ──
+let updateDialogWindow = null;
+let isManualUpdateCheck = false;
+
 // ── Window Creation ──
 
-function getBackgroundColor() {
+function resolveTheme() {
   const theme = store.getSetting('theme');
   if (theme === 'system') {
-    return nativeTheme.shouldUseDarkColors ? THEME_BG_COLORS.dark : THEME_BG_COLORS.light;
+    return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
   }
-  return THEME_BG_COLORS[theme] || THEME_BG_COLORS.dark;
+  return theme === 'light' ? 'light' : 'dark';
+}
+
+function getBackgroundColor() {
+  return THEME_BG_COLORS[resolveTheme()];
 }
 
 function createWindow(options = {}) {
@@ -65,9 +74,9 @@ function createWindow(options = {}) {
   const query = `windowId=${id}${fresh ? '&fresh=true' : ''}`;
 
   if (isDev) {
-    win.loadURL(`http://localhost:5173?${query}`);
+    win.loadURL(`http://localhost:5173/src/renderer/index.html?${query}`);
   } else {
-    win.loadFile(path.join(__dirname, '../../dist-renderer/main/index.html'), {
+    win.loadFile(path.join(__dirname, '../../dist-renderer/src/renderer/index.html'), {
       query: fresh ? { windowId: id, fresh: 'true' } : { windowId: id },
     });
   }
@@ -152,6 +161,13 @@ function handleMenuOpenFolder(dirPath) {
   store.addRecentDirectory(dirPath);
 }
 
+function handleCheckForUpdates() {
+  isManualUpdateCheck = true;
+  autoUpdater.checkForUpdates().catch((err) => {
+    console.error('[main] Update check failed:', err.message);
+  });
+}
+
 // ── Theme ──
 
 function broadcastTheme() {
@@ -160,6 +176,191 @@ function broadcastTheme() {
     if (!win.isDestroyed()) {
       win.webContents.send('app:theme-changed', theme);
     }
+  }
+  // Also update the update dialog if open
+  if (updateDialogWindow && !updateDialogWindow.isDestroyed()) {
+    updateDialogWindow.webContents.send('theme:changed', theme);
+  }
+}
+
+// ── Auto-Updater ──
+
+function formatReleaseNotes(info) {
+  if (!info.releaseNotes) return '';
+  if (typeof info.releaseNotes === 'string') return info.releaseNotes;
+  if (Array.isArray(info.releaseNotes)) {
+    return info.releaseNotes.map((n) => (typeof n === 'string' ? n : n.note || '')).join('\n\n');
+  }
+  return '';
+}
+
+function showUpdateDialog(mode, options = {}) {
+  // Close old dialog first — clear reference BEFORE close to prevent
+  // the old 'closed' handler from nulling the new window reference
+  const oldWindow = updateDialogWindow;
+  updateDialogWindow = null;
+  if (oldWindow && !oldWindow.isDestroyed()) {
+    oldWindow.close();
+  }
+
+  const theme = resolveTheme();
+
+  // Center over focused window if available
+  const pos = {};
+  const parent = getFocusedWindow();
+  if (parent && !parent.isDestroyed()) {
+    const b = parent.getBounds();
+    pos.x = Math.round(b.x + (b.width - UPDATE_DIALOG_SIZE.WIDTH) / 2);
+    pos.y = Math.round(b.y + (b.height - UPDATE_DIALOG_SIZE.HEIGHT) / 2);
+  }
+
+  const newWindow = new BrowserWindow({
+    width: UPDATE_DIALOG_SIZE.WIDTH,
+    height: UPDATE_DIALOG_SIZE.HEIGHT,
+    ...pos,
+    alwaysOnTop: true,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    frame: false,
+    backgroundColor: THEME_BG_COLORS[theme],
+    webPreferences: {
+      preload: path.join(__dirname, 'update-dialog-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  updateDialogWindow = newWindow;
+
+  // Store init data for the dialog to fetch via IPC
+  newWindow._initData = {
+    mode,
+    currentVersion: options.currentVersion || app.getVersion(),
+    newVersion: options.newVersion || '',
+    releaseNotes: options.releaseNotes || '',
+    theme,
+  };
+
+  if (isDev) {
+    newWindow.loadURL('http://localhost:5173/src/update-dialog/index.html');
+  } else {
+    newWindow.loadFile(path.join(__dirname, '../../dist-renderer/src/update-dialog/index.html'));
+  }
+
+  newWindow.on('closed', () => {
+    if (updateDialogWindow === newWindow) {
+      updateDialogWindow = null;
+    }
+  });
+}
+
+function setupAutoUpdater() {
+  // Don't auto-download; let user decide
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info) => {
+    isManualUpdateCheck = false;
+    showUpdateDialog('update-available', {
+      newVersion: info.version,
+      releaseNotes: formatReleaseNotes(info),
+    });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    if (isManualUpdateCheck) {
+      isManualUpdateCheck = false;
+      const win = getFocusedWindow();
+      const opts = {
+        type: 'info',
+        title: 'No Updates Available',
+        message: "You're running the latest version.",
+        buttons: ['OK'],
+      };
+      if (win) dialog.showMessageBox(win, opts);
+      else dialog.showMessageBox(opts);
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    const releaseNotes = formatReleaseNotes(info);
+    if (releaseNotes) {
+      store.setSetting('pendingWhatsNewNotes', releaseNotes);
+    }
+    showUpdateDialog('update-downloaded', {
+      newVersion: info.version,
+      releaseNotes,
+    });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    const percent = Math.round(progress.percent);
+    if (updateDialogWindow && !updateDialogWindow.isDestroyed()) {
+      updateDialogWindow.webContents.send('app:download-progress', percent);
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    if (!isDev) {
+      console.error('[main] Auto-updater error:', err.message);
+      if (isManualUpdateCheck) {
+        isManualUpdateCheck = false;
+        const win = getFocusedWindow();
+        const opts = {
+          type: 'error',
+          title: 'Update Error',
+          message: 'Failed to check for updates.',
+          detail: err.message || 'Please try again later.',
+          buttons: ['OK'],
+        };
+        if (win) dialog.showMessageBox(win, opts);
+        else dialog.showMessageBox(opts);
+      }
+    }
+  });
+
+  // ── Update Dialog IPC ──
+
+  ipcMain.handle('update-dialog:get-init-data', () => {
+    if (updateDialogWindow && updateDialogWindow._initData) {
+      return updateDialogWindow._initData;
+    }
+    return null;
+  });
+
+  ipcMain.handle('app:check-for-updates', () => {
+    handleCheckForUpdates();
+  });
+
+  ipcMain.handle('app:download-update', () => {
+    autoUpdater.downloadUpdate().catch((err) => {
+      console.error('[main] Download update failed:', err.message);
+    });
+  });
+
+  ipcMain.handle('app:restart-for-update', () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
+
+  ipcMain.on('update-dialog:close', () => {
+    if (updateDialogWindow && !updateDialogWindow.isDestroyed()) {
+      updateDialogWindow.close();
+    }
+  });
+
+  // Schedule update checks (skip in dev)
+  if (!isDev) {
+    setTimeout(() => {
+      autoUpdater.checkForUpdates().catch((err) => {
+        console.error('[main] Update check failed:', err.message);
+      });
+    }, TIMING.UPDATE_CHECK_DELAY_MS);
+
+    setInterval(() => {
+      autoUpdater.checkForUpdates().catch(() => {});
+    }, TIMING.UPDATE_CHECK_INTERVAL_MS);
   }
 }
 
@@ -218,9 +419,20 @@ app.whenReady().then(() => {
     onNewFile: handleMenuNewFile,
     onNewWindow: handleMenuNewWindow,
     onOpenFolder: handleMenuOpenFolder,
+    onCheckForUpdates: handleCheckForUpdates,
   });
 
   nativeTheme.on('updated', broadcastTheme);
+
+  // ── Auto-Updater ──
+  setupAutoUpdater();
+
+  // Show "What's New" if there are pending notes from a previous update
+  const pendingNotes = store.getSetting('pendingWhatsNewNotes');
+  if (pendingNotes) {
+    store.setSetting('pendingWhatsNewNotes', null);
+    showUpdateDialog('whats-new', { releaseNotes: pendingNotes });
+  }
 
   // Open files dropped on dock icon (macOS)
   app.on('open-file', (event, filePath) => {

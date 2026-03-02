@@ -1,7 +1,7 @@
 const { Menu, app, dialog, shell } = require('electron');
 const path = require('path');
 
-function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFile, onNewWindow, onOpenFolder }) {
+function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFile, onNewWindow, onOpenFolder, onCheckForUpdates }) {
   const isMac = process.platform === 'darwin';
 
   const recentFiles = store.getRecentFiles();
@@ -17,7 +17,7 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
           label: 'Clear Recent',
           click: () => {
             store.clearRecentFiles();
-            buildAndSetMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFile, onNewWindow, onOpenFolder });
+            buildAndSetMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFile, onNewWindow, onOpenFolder, onCheckForUpdates });
           },
         },
       ]
@@ -30,6 +30,10 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
             label: app.name,
             submenu: [
               { role: 'about' },
+              {
+                label: 'Check for Updates...',
+                click: () => onCheckForUpdates(),
+              },
               { type: 'separator' },
               {
                 label: 'Settings...',

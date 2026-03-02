@@ -1,29 +1,26 @@
 #!/usr/bin/env node
-// Generates a simple app icon for the markdown editor.
-// Creates a 1024x1024 PNG using an SVG rendered to canvas.
-// Requires: npm install canvas (dev dependency, run once)
+// Generates the app icon in all required formats.
+// Uses macOS built-in tools only (qlmanage, sips, iconutil).
 //
 // Usage: node scripts/create-icon.js
 //
-// For production, convert the output to .icns using:
-//   mkdir build/icon.iconset
-//   sips -z 16 16   build/icon.png --out build/icon.iconset/icon_16x16.png
-//   sips -z 32 32   build/icon.png --out build/icon.iconset/icon_16x16@2x.png
-//   sips -z 32 32   build/icon.png --out build/icon.iconset/icon_32x32.png
-//   sips -z 64 64   build/icon.png --out build/icon.iconset/icon_32x32@2x.png
-//   sips -z 128 128 build/icon.png --out build/icon.iconset/icon_128x128.png
-//   sips -z 256 256 build/icon.png --out build/icon.iconset/icon_128x128@2x.png
-//   sips -z 256 256 build/icon.png --out build/icon.iconset/icon_256x256.png
-//   sips -z 512 512 build/icon.png --out build/icon.iconset/icon_256x256@2x.png
-//   sips -z 512 512 build/icon.png --out build/icon.iconset/icon_512x512.png
-//   sips -z 1024 1024 build/icon.png --out build/icon.iconset/icon_512x512@2x.png
-//   iconutil -c icns build/icon.iconset -o build/icon.icns
-//   rm -rf build/icon.iconset
+// Outputs:
+//   build/icon.svg   — source SVG (always regenerated)
+//   build/icon.png   — 1024x1024 PNG
+//   build/icon.icns  — macOS icon bundle (all sizes)
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
-// SVG icon: a simple document with "MD" text
+const buildDir = path.join(__dirname, '..', 'build');
+const svgPath = path.join(buildDir, 'icon.svg');
+const pngPath = path.join(buildDir, 'icon.png');
+const iconsetDir = path.join(buildDir, 'icon.iconset');
+const icnsPath = path.join(buildDir, 'icon.icns');
+
+// ── SVG Source ──
+
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
@@ -31,20 +28,53 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" 
       <stop offset="100%" stop-color="#1a1d23"/>
     </linearGradient>
   </defs>
-  <!-- Background rounded rect -->
   <rect x="64" y="64" width="896" height="896" rx="180" fill="url(#bg)"/>
-  <!-- Document shape -->
   <path d="M320 180 L620 180 L740 300 L740 844 L320 844 Z" fill="#242830" stroke="#3b82f6" stroke-width="4"/>
-  <!-- Fold corner -->
   <path d="M620 180 L620 300 L740 300" fill="#2e3340" stroke="#3b82f6" stroke-width="4"/>
-  <!-- MD text -->
   <text x="530" y="580" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="220" font-weight="700" fill="#e8e8e8" text-anchor="middle">MD</text>
-  <!-- Accent line -->
   <rect x="380" y="640" width="300" height="6" rx="3" fill="#3b82f6"/>
 </svg>`;
 
-const outPath = path.join(__dirname, '..', 'build', 'icon.svg');
-fs.writeFileSync(outPath, svg);
-console.log(`Icon SVG written to ${outPath}`);
-console.log('To create .icns, convert the SVG to a 1024x1024 PNG first,');
-console.log('then run the iconutil commands listed in this script.');
+// ── Generate Files ──
+
+fs.mkdirSync(buildDir, { recursive: true });
+fs.writeFileSync(svgPath, svg);
+console.log('1/4  SVG written:', svgPath);
+
+// SVG → PNG via macOS Quick Look (qlmanage)
+const tmpDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'icon-'));
+execSync(`qlmanage -t -s 1024 -o "${tmpDir}" "${svgPath}"`, { stdio: 'pipe' });
+const qlOutput = path.join(tmpDir, 'icon.svg.png');
+fs.copyFileSync(qlOutput, pngPath);
+fs.rmSync(tmpDir, { recursive: true });
+console.log('2/4  PNG generated:', pngPath);
+
+// PNG → iconset (all required sizes)
+if (fs.existsSync(iconsetDir)) fs.rmSync(iconsetDir, { recursive: true });
+fs.mkdirSync(iconsetDir);
+
+const sizes = [
+  [16, 'icon_16x16.png'],
+  [32, 'icon_16x16@2x.png'],
+  [32, 'icon_32x32.png'],
+  [64, 'icon_32x32@2x.png'],
+  [128, 'icon_128x128.png'],
+  [256, 'icon_128x128@2x.png'],
+  [256, 'icon_256x256.png'],
+  [512, 'icon_256x256@2x.png'],
+  [512, 'icon_512x512.png'],
+  [1024, 'icon_512x512@2x.png'],
+];
+
+for (const [size, name] of sizes) {
+  const outFile = path.join(iconsetDir, name);
+  execSync(`sips -z ${size} ${size} "${pngPath}" --out "${outFile}"`, { stdio: 'pipe' });
+}
+console.log('3/4  Iconset created:', iconsetDir);
+
+// iconset → .icns
+execSync(`iconutil -c icns "${iconsetDir}" -o "${icnsPath}"`, { stdio: 'pipe' });
+fs.rmSync(iconsetDir, { recursive: true });
+console.log('4/4  ICNS generated:', icnsPath);
+
+console.log('\nDone! Icon files ready for electron-builder.');

@@ -2,7 +2,7 @@
 
 ## v0.1.0 — Functional Application
 
-> Status: **In Progress**
+> Status: **Complete**
 
 ### Core
 
@@ -58,7 +58,6 @@
 - [x] Session restore (persist open tabs, active tab, folder path across restarts)
 - [x] File browser: delete file (move to trash) via context menu
 - [x] File browser: "Show in Finder" context menu option
-- [ ] File browser: delete folder (move to trash) via context menu
 
 ### Preview
 
@@ -85,9 +84,20 @@
 - [x] App icon (SVG source, icns generation script)
 - [x] macOS entitlements plist
 - [x] Release script (build + sign + GitHub release)
-- [ ] Generate .icns from icon SVG
+- [x] Generate .icns from icon SVG
+- [x] First successful build (unsigned)
 - [ ] First successful signed build
 - [ ] Test on clean macOS install
+
+### Auto-Updates
+
+- [x] electron-updater integration
+- [x] Check for updates on launch and periodically (every 4 hours)
+- [x] Check for Updates menu item
+- [x] Update available dialog with release notes and download button
+- [x] Download progress bar
+- [x] Update downloaded dialog (Restart & Install)
+- [x] "What's New" dialog shown after update restart
 
 ---
 
@@ -95,6 +105,7 @@
 
 > Status: **Planned**
 
+- [ ] File browser: delete folder (move to trash) via context menu
 - [ ] Preview pane: clickable links to local .md files open in new tab
 - [ ] Link resolution: handle relative paths
 - [ ] Link resolution: handle directory traversal (`../`, `./`)
@@ -115,21 +126,3 @@
 - [ ] File browser: drag to resize width
 - [ ] Export to HTML / PDF
 - [ ] Performance: large file handling
-
----
-
-## v0.4.0 — Auto-Updates
-
-> Status: **Planned**
-
-- [ ] electron-updater integration
-- [ ] Check for updates on launch (configurable)
-- [ ] Update available notification
-- [ ] Download and install update flow
-- [ ] Update dialog UI
-
----
-
-## Known Issues
-
-- Relative/local images in preview not rendering (custom protocol registered but images still fail to load)

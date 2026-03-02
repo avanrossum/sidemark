@@ -5,14 +5,9 @@
       <stop offset="100%" stop-color="#1a1d23"/>
     </linearGradient>
   </defs>
-  <!-- Background rounded rect -->
   <rect x="64" y="64" width="896" height="896" rx="180" fill="url(#bg)"/>
-  <!-- Document shape -->
   <path d="M320 180 L620 180 L740 300 L740 844 L320 844 Z" fill="#242830" stroke="#3b82f6" stroke-width="4"/>
-  <!-- Fold corner -->
   <path d="M620 180 L620 300 L740 300" fill="#2e3340" stroke="#3b82f6" stroke-width="4"/>
-  <!-- MD text -->
   <text x="530" y="580" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="220" font-weight="700" fill="#e8e8e8" text-anchor="middle">MD</text>
-  <!-- Accent line -->
   <rect x="380" y="640" width="300" height="6" rx="3" fill="#3b82f6"/>
 </svg>

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-03-01
+
+### Added
+
+- Auto-updates: electron-updater integration with GitHub Releases
+- Check for Updates menu item (app menu → Check for Updates...)
+- Update available dialog with release notes, download button, and progress bar
+- Update downloaded dialog with Restart & Install option
+- "What's New" dialog shown after update restart with release notes
+- Generated .icns app icon from SVG source (automated script via qlmanage + sips + iconutil)
+- Vite multi-entry build (renderer + update dialog)
+
+### Fixed
+
+- Relative/local images in preview now render correctly (added `local-resource:` to CSP img-src)
+
 ## [0.1.9] - 2026-03-01
 
 ### Fixed

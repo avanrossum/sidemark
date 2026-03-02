@@ -1,0 +1,183 @@
+@import '../renderer/styles/variables.css';
+
+/* ── Base ── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-system);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Update Container ── */
+.update-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px;
+}
+
+.update-drag {
+  -webkit-app-region: drag;
+  height: 24px;
+  margin: -20px -20px 0;
+}
+
+.update-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.update-version {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* ── Release Notes ── */
+.update-notes {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  user-select: text;
+  margin-bottom: 16px;
+}
+
+.update-notes h1,
+.update-notes h2,
+.update-notes h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 8px 0 4px;
+}
+
+.update-notes h1:first-child,
+.update-notes h2:first-child,
+.update-notes h3:first-child {
+  margin-top: 0;
+}
+
+.update-notes p {
+  margin: 4px 0;
+}
+
+.update-notes ul,
+.update-notes ol {
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+.update-notes li {
+  margin: 2px 0;
+}
+
+.update-notes code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-hover);
+  padding: 1px 4px;
+  border-radius: var(--radius-tiny);
+}
+
+.update-notes a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.update-notes a:hover {
+  text-decoration: underline;
+}
+
+/* ── Download Progress ── */
+.update-progress {
+  margin-bottom: 16px;
+}
+
+.update-progress-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.update-progress-track {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 6px;
+}
+
+.update-progress-fill {
+  background: var(--accent);
+  height: 100%;
+  transition: width 0.15s ease;
+}
+
+.update-progress-pct {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+/* ── Action Buttons ── */
+.update-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  font-family: var(--font-system);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--button-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.btn:hover {
+  background: var(--button-hover);
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* ── Scrollbar ── */
+.update-notes::-webkit-scrollbar {
+  width: 6px;
+}
+
+.update-notes::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.update-notes::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
