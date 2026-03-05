@@ -9,3 +9,4 @@ dist/
 # Governance / LLM session artifacts (not for public repo)
 CLAUDE.md
 Architecture.md
+tasks/
