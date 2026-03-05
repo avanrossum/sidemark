@@ -50,7 +50,7 @@ export default function App() {
   const dragTypeRef = useRef(null);
   const fileBrowserWidthRef = useRef(fileBrowserWidth);
   const editorSplitRef = useRef(editorSplit);
-  const tabViewStatesRef = useRef(new Map()); // Map<tabId, {scrollTop, cursorFrom, cursorTo}>
+  const tabViewStatesRef = useRef(new Map()); // Map<tabId, {scrollTop}>
 
   const activeTab = tabs?.find((t) => t.id === activeTabId) || tabs?.[0];
 
@@ -59,12 +59,8 @@ export default function App() {
   const saveCurrentTabViewState = useCallback(() => {
     if (activeTabId && editorRef.current) {
       const scrollInfo = editorRef.current.getScrollInfo();
-      const view = editorRef.current.getView();
-      const cursor = view ? view.state.selection.main : null;
       tabViewStatesRef.current.set(activeTabId, {
         scrollTop: scrollInfo.scrollTop,
-        cursorFrom: cursor ? cursor.from : 0,
-        cursorTo: cursor ? cursor.to : 0,
       });
     }
   }, [activeTabId]);
@@ -179,20 +175,10 @@ export default function App() {
     const frame = requestAnimationFrame(() => {
       const saved = tabViewStatesRef.current.get(activeTabId);
       if (saved && editorRef.current) {
-        const view = editorRef.current.getView();
-        if (view) {
-          const docLength = view.state.doc.length;
-          const safeFrom = Math.min(saved.cursorFrom, docLength);
-          const safeTo = Math.min(saved.cursorTo, docLength);
-          view.dispatch({
-            selection: { anchor: safeFrom, head: safeTo },
-            scrollIntoView: false,
-          });
-        }
         editorRef.current.scrollToPixel(saved.scrollTop);
       } else {
         // No saved state (new tab) — scroll to top
-        editorRef.current.scrollToPixel(0);
+        editorRef.current?.scrollToPixel(0);
       }
     });
 
@@ -367,8 +353,9 @@ export default function App() {
       electronAPI.unwatchFile(tab.filePath);
     }
 
-    // Clean up view state for closed tab
+    // Clean up view state and editor state for closed tab
     tabViewStatesRef.current.delete(tabId);
+    editorRef.current?.deleteState(tabId);
 
     setTabs((prev) => {
       const next = prev.filter((t) => t.id !== tabId);
@@ -720,6 +707,7 @@ export default function App() {
             onChange={(val) => updateContent(activeTab.id, val)}
             settings={settings}
             theme={theme}
+            tabId={activeTab.id}
           />
         </div>
 

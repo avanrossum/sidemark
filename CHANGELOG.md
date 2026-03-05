@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-03-05
+
+### Fixed
+
+- Per-document undo history: Cmd+Z no longer crosses tab boundaries — each tab now has its own independent undo/redo stack via per-tab EditorState isolation
+
 ## [0.2.2] - 2026-03-05
 
 ### Added

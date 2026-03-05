@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection } from '@codemirror/view';
-import { EditorState } from '@codemirror/state';
+import { EditorState, Transaction } from '@codemirror/state';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
@@ -96,12 +96,15 @@ const FORMATTING = {
   hr: { insert: '\n---\n' },
 };
 
-const Editor = forwardRef(function Editor({ content, onChange, settings, theme }, ref) {
+const Editor = forwardRef(function Editor({ content, onChange, settings, theme, tabId }, ref) {
   const containerRef = useRef(null);
   const viewRef = useRef(null);
   const onChangeRef = useRef(onChange);
   const isExternalUpdate = useRef(false);
   const applyFormattingRef = useRef(null);
+  const editorStatesRef = useRef(new Map());  // Map<tabId, EditorState>
+  const prevTabIdRef = useRef(null);
+  const extensionsRef = useRef(null);
 
   onChangeRef.current = onChange;
 
@@ -160,6 +163,8 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme }
       extensions.push(lineNumbers());
     }
 
+    extensionsRef.current = extensions;
+
     const state = EditorState.create({
       doc: content || '',
       extensions,
@@ -172,6 +177,10 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme }
 
     viewRef.current = view;
 
+    // Clear saved states — extensions changed, old states are incompatible
+    editorStatesRef.current.clear();
+    prevTabIdRef.current = tabId;
+
     return () => {
       view.destroy();
       viewRef.current = null;
@@ -179,6 +188,38 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme }
     // Recreate on theme, font, or settings changes that require full rebuild
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [theme, settings?.showLineNumbers, settings?.fontFamily, settings?.fontSize]);
+
+  // ── Tab State Swap (per-tab undo history) ──
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    const prevTabId = prevTabIdRef.current;
+
+    // Save outgoing tab's state
+    if (prevTabId && prevTabId !== tabId) {
+      editorStatesRef.current.set(prevTabId, view.state);
+    }
+
+    // Restore incoming tab's state
+    const savedState = editorStatesRef.current.get(tabId);
+    if (savedState) {
+      isExternalUpdate.current = true;
+      view.setState(savedState);
+      isExternalUpdate.current = false;
+    } else if (prevTabId !== null && prevTabId !== tabId) {
+      // New tab with no saved state — create fresh EditorState
+      isExternalUpdate.current = true;
+      view.setState(EditorState.create({
+        doc: content || '',
+        extensions: extensionsRef.current,
+      }));
+      isExternalUpdate.current = false;
+    }
+
+    prevTabIdRef.current = tabId;
+  }, [tabId]);
 
   // ── Sync Content from External Changes ──
 
@@ -191,6 +232,7 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme }
       isExternalUpdate.current = true;
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: content || '' },
+        annotations: Transaction.addToHistory.of(false),
       });
       isExternalUpdate.current = false;
     }
@@ -431,6 +473,10 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme }
 
     return {
       applyFormatting,
+
+      deleteState(id) {
+        editorStatesRef.current.delete(id);
+      },
 
       getView() {
         return viewRef.current;

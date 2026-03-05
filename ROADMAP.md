@@ -188,7 +188,7 @@
 - [x] Tab scroll/cursor position: save and restore per-tab scroll offset and cursor when switching tabs
 - [x] File browser refresh: increase watcher depth from 1 to 5 for nested subdirectories
 - [x] File browser refresh: reload tree on window focus to catch changes missed by FS events
-- [ ] Per-document undo history: Cmd+Z currently shares undo state across all tabs — each tab should have its own independent undo/redo stack
+- [x] Per-document undo history: Cmd+Z currently shares undo state across all tabs — each tab should have its own independent undo/redo stack
 
 ### Clickable Links
 
