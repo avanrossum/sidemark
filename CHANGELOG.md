@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-11
+
+### Added
+
+- Find in Folder: right-click any folder in the file browser → "Find in Folder" to search filenames and file content within that folder
+- Find in Folder: results show filename matches and content matches grouped by file with relative paths
+- Find in Folder: depth-limited recursive search (10 levels, 5000 file cap, 1000 result cap) with match highlighting
+
+### Fixed
+
+- Tab bar: newly opened tabs that are off-screen now auto-scroll into view
+
 ## [0.2.3] - 2026-03-05
 
 ### Fixed
