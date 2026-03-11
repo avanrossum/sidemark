@@ -364,6 +364,16 @@
   color: #ffffff;
 }
 
+.context-menu-item--disabled {
+  color: var(--text-disabled);
+  cursor: default;
+}
+
+.context-menu-item--disabled:hover {
+  background: transparent;
+  color: var(--text-disabled);
+}
+
 .context-menu-separator {
   height: 1px;
   background: var(--border-color);

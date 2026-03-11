@@ -376,6 +376,22 @@ export default function App() {
     });
   }, [tabs, activeTabId, saveTab]);
 
+  const closeOtherTabs = useCallback(async (keepTabId) => {
+    const toClose = tabs?.filter((t) => t.id !== keepTabId) || [];
+    for (const tab of toClose) {
+      await closeTab(tab.id);
+    }
+  }, [tabs, closeTab]);
+
+  const closeTabsToRight = useCallback(async (tabId) => {
+    const idx = tabs?.findIndex((t) => t.id === tabId) ?? -1;
+    if (idx < 0) return;
+    const toClose = tabs.slice(idx + 1);
+    for (const tab of toClose) {
+      await closeTab(tab.id);
+    }
+  }, [tabs, closeTab]);
+
   const duplicateFile = useCallback(async () => {
     if (!activeTab) return;
     saveCurrentTabViewState();
@@ -664,10 +680,13 @@ export default function App() {
             id: t.id,
             name: getTabName(t),
             dirty: isTabDirty(t),
+            filePath: t.filePath,
           }))}
           activeTabId={activeTabId}
           onSelectTab={switchTab}
           onCloseTab={closeTab}
+          onCloseOtherTabs={closeOtherTabs}
+          onCloseTabsToRight={closeTabsToRight}
           onNewTab={newFile}
         />
       </div>
