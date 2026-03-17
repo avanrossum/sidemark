@@ -382,6 +382,108 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
     return { success: true };
   });
 
+  // ── Export ──
+
+  // Shared: build a standalone HTML document from rendered markdown HTML
+  function buildExportHtml(htmlBody, title) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1d23;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+  h1 { font-size: 1.8em; font-weight: 700; margin: 0 0 0.6em; padding-bottom: 0.3em; border-bottom: 1px solid #e0e0e0; }
+  h2 { font-size: 1.4em; font-weight: 600; margin: 1.2em 0 0.4em; padding-bottom: 0.2em; border-bottom: 1px solid #e0e0e0; }
+  h3 { font-size: 1.15em; font-weight: 600; margin: 1em 0 0.4em; }
+  h4, h5, h6 { font-size: 1em; font-weight: 600; margin: 0.8em 0 0.3em; }
+  p { margin: 0 0 0.8em; }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+  code { font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; font-size: 0.9em; background: #f0f0f2; padding: 2px 5px; border-radius: 3px; }
+  pre { background: #f5f5f7; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; overflow-x: auto; margin: 0 0 1em; }
+  pre code { background: none; padding: 0; font-size: 13px; line-height: 1.5; }
+  blockquote { border-left: 3px solid #2563eb; padding-left: 12px; margin: 0 0 1em; color: #6b7280; font-style: italic; }
+  ul, ol { margin: 0 0 1em; padding-left: 1.5em; }
+  li { margin-bottom: 0.3em; }
+  hr { border: none; border-top: 1px solid #e0e0e0; margin: 1.5em 0; }
+  img { max-width: 100%; border-radius: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 1em; }
+  th, td { border: 1px solid #e0e0e0; padding: 6px 8px; text-align: left; }
+  th { background: #f5f5f7; font-weight: 600; }
+  input[type="checkbox"] { margin-right: 6px; }
+</style>
+</head>
+<body>
+${htmlBody}
+</body>
+</html>`;
+  }
+
+  ipcMain.handle('file:export-html', async (event, htmlBody, defaultName) => {
+    try {
+      const result = await dialog.showSaveDialog(getWindowFromEvent(event), {
+        defaultPath: defaultName ? defaultName.replace(/\.[^.]+$/, '.html') : 'export.html',
+        filters: [{ name: 'HTML', extensions: ['html'] }],
+      });
+      if (result.canceled || !result.filePath) return { success: false, canceled: true };
+
+      requireValidPath(result.filePath);
+      const title = path.basename(result.filePath, '.html');
+      const fullHtml = buildExportHtml(htmlBody, title);
+      fs.writeFileSync(result.filePath, fullHtml, 'utf-8');
+      return { success: true, filePath: result.filePath };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('file:export-pdf', async (event, htmlBody, defaultName) => {
+    try {
+      const result = await dialog.showSaveDialog(getWindowFromEvent(event), {
+        defaultPath: defaultName ? defaultName.replace(/\.[^.]+$/, '.pdf') : 'export.pdf',
+        filters: [{ name: 'PDF', extensions: ['pdf'] }],
+      });
+      if (result.canceled || !result.filePath) return { success: false, canceled: true };
+
+      requireValidPath(result.filePath);
+      const title = path.basename(result.filePath, '.pdf');
+      const fullHtml = buildExportHtml(htmlBody, title);
+
+      // Create hidden window to render HTML for PDF
+      const pdfWin = new BrowserWindow({
+        show: false,
+        width: 800,
+        height: 600,
+        webPreferences: { offscreen: true },
+      });
+
+      await pdfWin.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(fullHtml)}`);
+
+      const pdfBuffer = await pdfWin.webContents.printToPDF({
+        printBackground: true,
+        margins: { marginType: 'default' },
+      });
+
+      pdfWin.destroy();
+      fs.writeFileSync(result.filePath, pdfBuffer);
+      return { success: true, filePath: result.filePath };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
   // ── App Info ──
 
   ipcMain.handle('app:version', async () => {

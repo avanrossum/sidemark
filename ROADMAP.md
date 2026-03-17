@@ -210,7 +210,7 @@
 - [ ] Editor: bracket/quote auto-pairing
 - [ ] Auto-save option (with configurable delay)
 - [ ] File browser: drag to resize width
-- [ ] Export to HTML / PDF
+- [x] Export to HTML / PDF
 - [ ] Performance: large markdown files crash or freeze the app (editor + preview rendering)
 
 ### Bug Fixes

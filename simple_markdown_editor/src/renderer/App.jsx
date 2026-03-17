@@ -401,6 +401,20 @@ export default function App() {
     setActiveTabId(tab.id);
   }, [activeTab, saveCurrentTabViewState]);
 
+  // ── Export ──
+
+  const exportAs = useCallback(async (format) => {
+    if (!activeTab) return;
+    const previewEl = document.querySelector('.preview-container');
+    const htmlBody = previewEl ? previewEl.innerHTML : '';
+    const defaultName = getTabName(activeTab);
+    if (format === 'html') {
+      await electronAPI.exportHtml(htmlBody, defaultName);
+    } else if (format === 'pdf') {
+      await electronAPI.exportPdf(htmlBody, defaultName);
+    }
+  }, [activeTab]);
+
   // ── Close Window (with dirty checks) ──
 
   const closeWindow = useCallback(async () => {
@@ -571,6 +585,8 @@ export default function App() {
         setShowSearch(true);
         setShowReplace((v) => !v);
       }),
+      electronAPI.onExportHtml(() => exportAs('html')),
+      electronAPI.onExportPdf(() => exportAs('pdf')),
       electronAPI.onDuplicateFile(() => duplicateFile()),
       electronAPI.onShowSettings(() => setShowSettings(true)),
       electronAPI.onShowAbout(() => setShowAbout(true)),
@@ -578,7 +594,7 @@ export default function App() {
       electronAPI.onCloseWindow(() => closeWindow()),
     ];
     return () => unsubs.forEach((fn) => fn());
-  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile, closeTab, closeWindow, activeTabId]);
+  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile, exportAs, closeTab, closeWindow, activeTabId]);
 
   // ── Toolbar Actions ──
 

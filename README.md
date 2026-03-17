@@ -50,6 +50,8 @@ Signed and notarized with Apple — no Gatekeeper warnings. macOS 12+ required. 
 
 **File Associations** — Registers as a handler for `.md`, `.markdown`, `.mdown`, `.mkd`, `.mkdn`, `.mdwn`, `.mdx`, `.txt`. Shows up in Finder's "Open With" menu.
 
+**Export** — File > Export As > PDF or HTML. Exports use clean light-theme styling with inline CSS — no external dependencies.
+
 **Auto-Updates** — Checks for new versions automatically (every 4 hours). Downloads in the background. One-click "Restart & Install" with release notes. "What's New" dialog after update.
 
 ## What It Doesn't Do

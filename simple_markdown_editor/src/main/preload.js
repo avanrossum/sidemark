@@ -20,6 +20,10 @@ const electronAPI = {
   showInFolder: (filePath) => ipcRenderer.invoke('file:show-in-folder', filePath),
   searchInFolder: (folderPath, searchTerm, options) => ipcRenderer.invoke('file:search-in-folder', folderPath, searchTerm, options),
 
+  // ── Export ──
+  exportHtml: (htmlBody, defaultName) => ipcRenderer.invoke('file:export-html', htmlBody, defaultName),
+  exportPdf: (htmlBody, defaultName) => ipcRenderer.invoke('file:export-pdf', htmlBody, defaultName),
+
   // ── File Watching ──
   watchFile: (filePath) => ipcRenderer.invoke('watch:file', filePath),
   unwatchFile: (filePath) => ipcRenderer.invoke('watch:unwatch-file', filePath),
@@ -84,6 +88,16 @@ const electronAPI = {
     const handler = () => callback();
     ipcRenderer.on('toggle-search-replace', handler);
     return () => ipcRenderer.removeListener('toggle-search-replace', handler);
+  },
+  onExportHtml: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('export-html', handler);
+    return () => ipcRenderer.removeListener('export-html', handler);
+  },
+  onExportPdf: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('export-pdf', handler);
+    return () => ipcRenderer.removeListener('export-pdf', handler);
   },
   onDuplicateFile: (callback) => {
     const handler = () => callback();

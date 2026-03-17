@@ -121,6 +121,26 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
         },
         { type: 'separator' },
         {
+          label: 'Export As',
+          submenu: [
+            {
+              label: 'PDF...',
+              click: () => {
+                const win = getFocusedWindow();
+                if (win) win.webContents.send('export-pdf');
+              },
+            },
+            {
+              label: 'HTML...',
+              click: () => {
+                const win = getFocusedWindow();
+                if (win) win.webContents.send('export-html');
+              },
+            },
+          ],
+        },
+        { type: 'separator' },
+        {
           label: 'Close Tab',
           accelerator: 'CmdOrCtrl+W',
           click: () => {
