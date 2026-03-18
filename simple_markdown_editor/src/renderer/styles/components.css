@@ -409,14 +409,38 @@
 /* ── Diff View ── */
 
 .diff-modal {
-  width: 700px;
-  max-height: 80vh;
+  width: 740px;
+  max-height: 85vh;
 }
 
 .diff-description {
   font-size: 13px;
   color: var(--text-secondary);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+
+.diff-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.diff-toolbar .btn-sm {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+.diff-toolbar .btn-active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.diff-toolbar-summary {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .diff-content {
@@ -426,31 +450,8 @@
   margin-bottom: var(--space-xl);
 }
 
-.diff-header {
-  display: flex;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.diff-label {
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.diff-label--current {
-  color: var(--diff-removed-color);
-}
-
-.diff-label--external {
-  color: var(--diff-added-color);
-}
-
 .diff-body {
-  max-height: 400px;
+  max-height: 450px;
   overflow-y: auto;
   font-family: var(--font-mono);
   font-size: 12px;
@@ -468,6 +469,14 @@
 
 .diff-line--removed {
   background: var(--diff-removed-bg);
+}
+
+.diff-line--dimmed {
+  opacity: 0.35;
+}
+
+.diff-line--kept {
+  opacity: 1;
 }
 
 .diff-indicator {
@@ -494,6 +503,53 @@
   white-space: pre-wrap;
   word-break: break-all;
   padding-right: var(--space-md);
+}
+
+/* ── Hunk Controls ── */
+
+.diff-hunk--change {
+  position: relative;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.diff-hunk--change:hover {
+  border-left-color: var(--accent);
+}
+
+.diff-hunk--reject {
+  border-left-color: var(--diff-removed-color);
+}
+
+.diff-hunk--accept {
+  border-left-color: var(--diff-added-color);
+}
+
+.diff-hunk-badge {
+  position: absolute;
+  right: 8px;
+  top: 4px;
+  font-size: 9px;
+  font-family: var(--font-system);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: var(--radius-tiny);
+  pointer-events: none;
+  z-index: 1;
+  user-select: none;
+}
+
+.diff-hunk--reject .diff-hunk-badge {
+  background: var(--diff-removed-bg);
+  color: var(--diff-removed-color);
+}
+
+.diff-hunk--accept .diff-hunk-badge {
+  background: var(--diff-added-bg);
+  color: var(--diff-added-color);
 }
 
 .diff-actions {

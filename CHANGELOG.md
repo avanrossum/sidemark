@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-03-18
+
+### Added
+
+- Interactive diff view: per-hunk accept/reject when resolving conflicts. Click change blocks to toggle between "mine" and "theirs". Bulk "Keep all mine" / "Accept all theirs" buttons. Mixed selections merged via "Apply Selection".
+
+### Fixed
+
+- Diff hunk grouping: heading + body changes separated by blank lines are now merged into a single clickable hunk (prevents partial section selection)
+
 ## [0.4.1] - 2026-03-18
 
 ### Added

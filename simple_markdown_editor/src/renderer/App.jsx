@@ -584,7 +584,7 @@ export default function App() {
 
   // ── Diff Resolution ──
 
-  const handleDiffResolve = useCallback(async (action) => {
+  const handleDiffResolve = useCallback(async (action, mergedContent) => {
     if (!diffData) return;
 
     if (action === 'overwrite') {
@@ -595,13 +595,21 @@ export default function App() {
             : t
         )
       );
+    } else if (action === 'merge') {
+      // Per-hunk merge — apply the user's selections
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === diffData.tabId
+            ? { ...t, content: mergedContent, savedContent: diffData.externalContent }
+            : t
+        )
+      );
     } else if (action === 'save-as-new') {
       const result = await electronAPI.showSaveDialog({
         defaultPath: diffData.filePath,
       });
       if (!result.canceled && result.filePath) {
         await electronAPI.writeFile(result.filePath, diffData.currentContent);
-        // Also accept the external version in current tab
         setTabs((prev) =>
           prev.map((t) =>
             t.id === diffData.tabId
