@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-03-18
+
+### Added
+
+- Enhanced markdown syntax highlighting: theme-aware colors for headings (golden), bold, italic, code (green), links, quotes, and dimmed syntax markers. Dark and light variants.
+- Task list checkboxes in preview: custom styled spans (accent-colored checked state) replacing browser-default inputs that DOMPurify stripped
+
+### Fixed
+
+- Task list checkbox line break in loose list items (checkbox now injected inside paragraph tag)
+
 ## [0.4.3] - 2026-03-18
 
 ### Added
