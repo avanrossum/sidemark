@@ -317,9 +317,11 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
 
   ipcMain.handle('watch:file', async (_, filePath) => {
     requireValidPath(filePath);
-    fileWatcher.watchFile(filePath, (changedPath) => {
-      broadcast('watch:file-changed', changedPath);
-    });
+    fileWatcher.watchFile(
+      filePath,
+      (changedPath) => broadcast('watch:file-changed', changedPath),
+      (deletedPath) => broadcast('watch:file-deleted', deletedPath),
+    );
     return { success: true };
   });
 

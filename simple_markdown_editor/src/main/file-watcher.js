@@ -14,7 +14,7 @@ class FileWatcher {
 
   // ── File Watching (open files) ──
 
-  watchFile(filePath, callback) {
+  watchFile(filePath, onChange, onDelete) {
     if (this._watchers.has(filePath)) return;
 
     const watcher = chokidar.watch(filePath, {
@@ -27,8 +27,14 @@ class FileWatcher {
     });
 
     watcher.on('change', () => {
-      this._debounce(filePath, () => callback(filePath), TIMING.FILE_WATCH_DEBOUNCE_MS);
+      this._debounce(filePath, () => onChange(filePath), TIMING.FILE_WATCH_DEBOUNCE_MS);
     });
+
+    if (onDelete) {
+      watcher.on('unlink', () => {
+        this._debounce(`${filePath}:unlink`, () => onDelete(filePath), TIMING.FILE_WATCH_DEBOUNCE_MS);
+      });
+    }
 
     watcher.on('error', (err) => {
       console.error('File watcher error:', err.message);

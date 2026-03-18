@@ -582,6 +582,46 @@ export default function App() {
     return unsub;
   }, [tabs]);
 
+  // ── File Deletion Detection ──
+
+  useEffect(() => {
+    if (IS_FOCUS_MODE) return;
+
+    const unsub = electronAPI.onFileDeleted(async (filePath) => {
+      if (!tabs) return;
+      const tab = tabs.find((t) => t.filePath === filePath);
+      if (!tab) return;
+
+      const result = await electronAPI.showMessageBox({
+        type: 'warning',
+        title: 'File Deleted',
+        message: `${filePath.split('/').pop()} has been deleted from disk.`,
+        detail: 'Would you like to close the tab or re-save the file?',
+        buttons: ['Close Tab', 'Re-save File'],
+        defaultId: 1,
+        cancelId: 0,
+      });
+
+      if (result.response === 0) {
+        // Close tab
+        closeTab(tab.id);
+      } else {
+        // Re-save — write content back to disk and re-watch
+        await electronAPI.writeFile(filePath, tab.content);
+        const stat = await electronAPI.getFileStat(filePath);
+        setTabs((prev) =>
+          prev.map((t) =>
+            t.id === tab.id
+              ? { ...t, savedContent: t.content, lastKnownMtime: stat.success ? stat.mtime : null }
+              : t
+          )
+        );
+        await electronAPI.watchFile(filePath);
+      }
+    });
+    return unsub;
+  }, [tabs, closeTab]);
+
   // ── Diff Resolution ──
 
   const handleDiffResolve = useCallback(async (action, mergedContent) => {

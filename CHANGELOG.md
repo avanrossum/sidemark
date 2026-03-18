@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-03-18
+
+### Added
+
+- External file deletion detection: when an open file is deleted from disk, a dialog prompts to close the tab or re-save the file
+
 ## [0.4.2] - 2026-03-18
 
 ### Added

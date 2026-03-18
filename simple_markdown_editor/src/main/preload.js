@@ -47,6 +47,11 @@ const electronAPI = {
     ipcRenderer.on('watch:file-changed', handler);
     return () => ipcRenderer.removeListener('watch:file-changed', handler);
   },
+  onFileDeleted: (callback) => {
+    const handler = (_, filePath) => callback(filePath);
+    ipcRenderer.on('watch:file-deleted', handler);
+    return () => ipcRenderer.removeListener('watch:file-deleted', handler);
+  },
   onDirectoryChanged: (callback) => {
     const handler = (_, dirPath) => callback(dirPath);
     ipcRenderer.on('watch:directory-changed', handler);
