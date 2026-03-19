@@ -59,6 +59,13 @@ export default function App() {
   const fileBrowserWidthRef = useRef(fileBrowserWidth);
   const editorSplitRef = useRef(editorSplit);
   const tabViewStatesRef = useRef(new Map()); // Map<tabId, {scrollTop}>
+  const tabsRef = useRef(tabs);
+  const activeTabIdRef = useRef(activeTabId);
+  const folderPathRef = useRef(folderPath);
+
+  tabsRef.current = tabs;
+  activeTabIdRef.current = activeTabId;
+  folderPathRef.current = folderPath;
 
   const activeTab = tabs?.find((t) => t.id === activeTabId) || tabs?.[0];
 
@@ -174,22 +181,34 @@ export default function App() {
 
   // ── Session Save ──
 
+  const saveSessionNow = useCallback(() => {
+    if (IS_FOCUS_MODE || !sessionRestoredRef.current) return;
+    const currentTabs = tabsRef.current;
+    if (!currentTabs) return;
+    const openFiles = currentTabs.filter((t) => t.filePath).map((t) => t.filePath);
+    const activeFile = currentTabs.find((t) => t.id === activeTabIdRef.current)?.filePath || null;
+    electronAPI.setSession(WINDOW_ID, {
+      openFiles,
+      activeFile,
+      folderPath: folderPathRef.current || null,
+    });
+  }, []);
+
   useEffect(() => {
-    if (IS_FOCUS_MODE) return; // Focus windows don't persist sessions
+    if (IS_FOCUS_MODE) return;
     if (!sessionRestoredRef.current || !tabs) return;
 
-    const timer = setTimeout(() => {
-      const openFiles = tabs.filter((t) => t.filePath).map((t) => t.filePath);
-      const activeFile = tabs.find((t) => t.id === activeTabId)?.filePath || null;
-      electronAPI.setSession(WINDOW_ID, {
-        openFiles,
-        activeFile,
-        folderPath: folderPath || null,
-      });
-    }, 500);
+    const timer = setTimeout(saveSessionNow, 500);
 
     return () => clearTimeout(timer);
-  }, [tabs, activeTabId, folderPath]);
+  }, [tabs, activeTabId, folderPath, saveSessionNow]);
+
+  // Flush session immediately before window closes
+  useEffect(() => {
+    const handleBeforeUnload = () => saveSessionNow();
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [saveSessionNow]);
 
   // ── Restore Tab View State ──
 

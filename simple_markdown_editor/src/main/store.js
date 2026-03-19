@@ -141,6 +141,14 @@ class Store {
     if (this._saveTimer) clearTimeout(this._saveTimer);
     this._saveTimer = setTimeout(() => this._save(), TIMING.SAVE_DEBOUNCE_MS);
   }
+
+  flush() {
+    if (this._saveTimer) {
+      clearTimeout(this._saveTimer);
+      this._saveTimer = null;
+    }
+    this._save();
+  }
 }
 
 module.exports = Store;

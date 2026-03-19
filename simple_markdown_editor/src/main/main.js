@@ -414,6 +414,7 @@ function setupAutoUpdater() {
   });
 
   ipcMain.handle('app:restart-for-update', () => {
+    store.flush();
     autoUpdater.quitAndInstall(false, true);
   });
 
@@ -577,4 +578,5 @@ app.on('window-all-closed', () => {
 app.on('before-quit', () => {
   isQuitting = true;
   fileWatcher.destroy();
+  store.flush();
 });

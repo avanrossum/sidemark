@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-03-18
+
+### Fixed
+
+- Session persistence on quit: added synchronous flush to prevent session loss when app quits or restarts for update before debounced saves complete
+- Session persistence on update: `quitAndInstall()` now flushes store to disk before restarting
+- Renderer session flush: `beforeunload` listener ensures pending session data is sent to main process immediately on window close
+
 ## [0.4.4] - 2026-03-18
 
 ### Added
