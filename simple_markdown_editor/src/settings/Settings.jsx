@@ -168,7 +168,7 @@ export default function Settings({ settings: initialSettings, onClose }) {
 
           <div className="settings-row">
             <div>
-              <label>Simple Markdown Editor</label>
+              <label>SideMark</label>
               <div className="hint">v{version || '0.1.0'}</div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function Settings({ settings: initialSettings, onClose }) {
             </button>
             <button
               className="btn btn-ghost"
-              onClick={() => electronAPI.openExternal('https://github.com/avanrossum/simple-markdown-editor')}
+              onClick={() => electronAPI.openExternal('https://github.com/avanrossum/sidemark')}
             >
               GitHub
             </button>

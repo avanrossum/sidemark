@@ -1,6 +1,6 @@
 module.exports = {
-  appId: 'com.mipyip.simple-markdown-editor',
-  productName: 'Simple Markdown Editor',
+  appId: 'com.mipyip.sidemark',
+  productName: 'SideMark',
   files: [
     'src/main/**/*',
     'dist-renderer/**/*',
@@ -37,7 +37,7 @@ module.exports = {
   publish: {
     provider: 'github',
     owner: 'avanrossum',
-    repo: 'a-simple-markdown-editor',
+    repo: 'sidemark',
     releaseType: 'release',
   },
 };

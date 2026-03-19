@@ -1,13 +1,13 @@
 {
-  "name": "simple-markdown-editor",
-  "version": "0.5.0",
-  "description": "A stupid simple markdown editor",
+  "name": "sidemark",
+  "version": "1.0.0",
+  "description": "A markdown editor built for working alongside AI",
   "main": "src/main/main.js",
   "author": {
     "name": "mipyip",
     "url": "https://mipyip.com"
   },
-  "homepage": "https://github.com/avanrossum/simple-markdown-editor",
+  "homepage": "https://github.com/avanrossum/sidemark",
   "license": "MIT",
   "scripts": {
     "dev": "concurrently -k \"npm run dev:renderer\" \"npm run dev:electron\"",

@@ -1,20 +1,20 @@
-# Simple Markdown Editor
+# SideMark
 
 A markdown editor for macOS, built for working alongside AI.
 
 I built this because I was frustrated with every other markdown editor — too expensive, too slow, too bloated, or too buggy. I just wanted three panes, no cloud, no account, no subscription. A clean editor, a live preview, and a file browser that stays out of your way.
 
-Then it became something more. I work with AI coding tools daily — Claude Code, Copilot, Cursor — and they all write to files on my behalf. Every other editor treats that as an error condition. This one treats it as the primary workflow. When an AI tool edits your file while you're working in it, Simple Markdown Editor merges both sets of changes automatically. When they collide, you pick which lines to keep. No lost work, no surprises.
+Then it became something more. I work with AI coding tools daily — Claude Code, Copilot, Cursor — and they all write to files on my behalf. Every other editor treats that as an error condition. SideMark treats it as the primary workflow. When an AI tool edits your file while you're working in it, SideMark merges both sets of changes automatically. When they collide, you pick which lines to keep. No lost work, no surprises.
 
-[![Download](https://img.shields.io/badge/download-latest-blue)](https://github.com/avanrossum/a-simple-markdown-editor/releases/latest)
+[![Download](https://img.shields.io/badge/download-latest-blue)](https://github.com/avanrossum/sidemark/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Website](https://img.shields.io/badge/website-mipyip.com-blue)](https://mipyip.com/products/simple-markdown-editor)
+[![Website](https://img.shields.io/badge/website-mipyip.com-blue)](https://mipyip.com/products/sidemark)
 
-[Product Page](https://mipyip.com/products/simple-markdown-editor) · [Blog Post](https://mipyip.com/blog/simple-markdown-editor)
+[Product Page](https://mipyip.com/products/sidemark) · [Blog Post](https://mipyip.com/blog/simple-markdown-editor)
 
 ## Download
 
-Grab the latest `.dmg` from [GitHub Releases](https://github.com/avanrossum/a-simple-markdown-editor/releases/latest). Open it, drag to Applications, done.
+Grab the latest `.dmg` from [GitHub Releases](https://github.com/avanrossum/sidemark/releases/latest). Open it, drag to Applications, done.
 
 Signed and notarized with Apple — no Gatekeeper warnings. macOS 12+ required. Apple Silicon supported.
 
@@ -61,7 +61,7 @@ Signed and notarized with Apple — no Gatekeeper warnings. macOS 12+ required. 
 
 ## Built for AI-Assisted Development
 
-Most markdown editors assume a single author. This one assumes two.
+Most markdown editors assume a single author. SideMark assumes two.
 
 If you work with AI coding tools — Claude Code, Copilot, Cursor, or anything that writes to files on your behalf — these features exist because of that workflow:
 
@@ -96,7 +96,7 @@ If you work with AI coding tools — Claude Code, Copilot, Cursor, or anything t
 
 ## What It Doesn't Do
 
-No cloud sync. No collaboration. No plugin system. No Vim mode. No WYSIWYG. No proprietary format. No account creation. No subscription. No telemetry.
+No cloud sync. No real-time collaboration. No plugin system. No Vim mode. No WYSIWYG. No proprietary format. No account creation. No subscription. No telemetry.
 
 Your files are plain markdown on disk. Open them with anything, anywhere, forever.
 
@@ -116,7 +116,7 @@ This app underwent an adversarial security review with comprehensive hardening:
 
 ### From release
 
-Download the `.dmg` from [Releases](https://github.com/avanrossum/a-simple-markdown-editor/releases/latest), open it, drag to Applications.
+Download the `.dmg` from [Releases](https://github.com/avanrossum/sidemark/releases/latest), open it, drag to Applications.
 
 ### From source
 

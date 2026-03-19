@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-03-19
+
+### Changed
+
+- Renamed from "Simple Markdown Editor" to **SideMark**
+- New tagline: "A markdown editor built for working alongside AI"
+- Updated app ID, product name, about dialog, settings, menus, and all references
+- Version bump to 1.0.0 to mark the rebrand and feature maturity
+
 ## [0.5.0] - 2026-03-18
 
 ### Added

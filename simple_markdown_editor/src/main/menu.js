@@ -240,7 +240,7 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
       label: 'Help',
       submenu: [
         {
-          label: 'About Simple Markdown Editor',
+          label: 'About SideMark',
           click: () => {
             const win = getFocusedWindow();
             if (win) win.webContents.send('show-about');
@@ -253,7 +253,7 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
         },
         {
           label: 'View on GitHub',
-          click: () => shell.openExternal('https://github.com/avanrossum/simple-markdown-editor'),
+          click: () => shell.openExternal('https://github.com/avanrossum/sidemark'),
         },
       ],
     },

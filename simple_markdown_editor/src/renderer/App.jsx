@@ -1139,9 +1139,9 @@ export default function App() {
       {showAbout && (
         <div className="modal-overlay" onClick={() => setShowAbout(false)}>
           <div className="modal about-modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Simple Markdown Editor</h2>
-            <p className="about-version">v{settings._version || '0.1.0'}</p>
-            <p className="about-description">A stupid simple markdown editor.</p>
+            <h2>SideMark</h2>
+            <p className="about-version">v{settings._version || '1.0.0'}</p>
+            <p className="about-description">A markdown editor built for working alongside AI.</p>
             <div className="about-links">
               <button
                 className="link-button"
@@ -1151,7 +1151,7 @@ export default function App() {
               </button>
               <button
                 className="link-button"
-                onClick={() => electronAPI.openExternal('https://github.com/avanrossum/simple-markdown-editor')}
+                onClick={() => electronAPI.openExternal('https://github.com/avanrossum/sidemark')}
               >
                 GitHub
               </button>
