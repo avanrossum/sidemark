@@ -272,19 +272,4 @@
 
 ---
 
-## v1.1.0 — Distribution & Launch
-
-> Status: **Planned** (priority: distribution before features)
-
-### Distribution
-
-- [ ] Submit Homebrew Cask formula
-- [ ] Shields.io download count badge on README
-- [ ] Record 60-second demo video (three-way merge in action)
-- [ ] Polish README as landing page with embedded video
-- [ ] Show HN post
-- [ ] Reddit posts (r/programming, r/macapps, r/ClaudeAI, r/ChatGPTPro)
-
----
-
-See internal roadmap for post-launch feature plans.
+See [Issues](https://github.com/avanrossum/sidemark/issues) for what's next.
