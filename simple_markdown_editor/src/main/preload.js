@@ -175,6 +175,11 @@ const electronAPI = {
     ipcRenderer.on('copy-selection-with-context', handler);
     return () => ipcRenderer.removeListener('copy-selection-with-context', handler);
   },
+  onFindInFolder: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('find-in-folder', handler);
+    return () => ipcRenderer.removeListener('find-in-folder', handler);
+  },
 
   onThemeChanged: (callback) => {
     const handler = (_, theme) => callback(theme);

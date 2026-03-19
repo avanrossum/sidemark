@@ -256,9 +256,62 @@
 
 ---
 
-## v0.5.0 — TypeScript Migration
+## v1.0.0 — SideMark Rebrand
+
+> Status: **Complete**
+
+- [x] Rename from "Simple Markdown Editor" to "SideMark"
+- [x] Git gutter markers (added/modified/deleted vs last commit)
+- [x] Toast notifications for silent merge success
+- [x] Copy with context (⌘⌥C) — file path + line numbers for AI chat windows
+- [x] Editor right-click context menu (cut, copy, paste, copy with path)
+- [x] Enhanced markdown syntax highlighting (theme-aware colors)
+- [x] Task list checkboxes in preview (custom styled, DOMPurify-safe)
+- [x] Session persistence flush-on-quit (no session loss during updates)
+- [x] Find in Folder keyboard shortcut (⌘⇧G)
+
+---
+
+## v1.1.0 — Distribution & Launch
+
+> Status: **Planned** (priority: distribution before features)
+
+### Distribution
+
+- [ ] Submit Homebrew Cask formula
+- [ ] Shields.io download count badge on README
+- [ ] Record 60-second demo video (three-way merge in action)
+- [ ] Polish README as landing page with embedded video
+- [ ] Show HN post
+- [ ] Reddit posts (r/programming, r/macapps, r/ClaudeAI, r/ChatGPTPro)
+
+---
+
+## v1.2.0 — Deepen the Moat
 
 > Status: **Planned**
+
+### AI-Collaborative Features
+
+- [ ] AI edit timeline / session history — per-external-edit snapshots with timeline scrubber
+- [ ] Multi-file change overview — "Claude just edited these 7 files, here's what changed in each"
+- [ ] Batch external changes — when AI edits multiple files at once, batch notifications into one panel
+- [ ] Side-by-side diff view (in addition to inline) — left=mine, right=theirs
+- [ ] Clipboard history for AI context — last 10 copies with path context, assembled into one paste
+
+### Quality of Life
+
+- [ ] `.sidemarkignore` or settings-based watch scope configuration
+- [ ] "What changed?" natural language summary for external edits (post-traction)
+- [ ] Scroll sync improvements (more anchor points for large files)
+
+---
+
+## Future
+
+> Deferred — do after traction proves the market
+
+### TypeScript Migration
 
 - [ ] Add TypeScript config (`tsconfig.json`) and build tooling
 - [ ] Migrate main process modules (main.js, ipc-handlers.js, store.js, etc.)
@@ -266,3 +319,8 @@
 - [ ] Migrate settings and update-dialog entry points
 - [ ] Migrate preload scripts
 - [ ] Add type definitions for IPC channels and electronAPI bridge
+
+### Cross-Platform
+
+- [ ] Windows support (after 500+ macOS users)
+- [ ] Linux support

@@ -94,6 +94,22 @@ If you work with AI coding tools — Claude Code, Copilot, Cursor, or anything t
 | **File Associations** | Registers for `.md`, `.markdown`, `.mdown`, `.mkd`, `.mkdn`, `.mdwn`, `.mdx`, `.txt`. Shows in Finder's "Open With". |
 | **Auto-Updates** | Checks every 4 hours. Background download. One-click "Restart & Install" with release notes. |
 
+## Power User Features
+
+These are already built and shipping — the details that turn "clever idea" into "this person thought through every edge case":
+
+**Save Mine as New File.** During merge conflicts, you can fork your version to a new file while accepting the AI's changes in the original. A power-user escape hatch for the worst case.
+
+**Smart hunk grouping.** When the AI changes a heading and its body text, the diff resolver groups them into one logical decision instead of making you accept/reject each line individually.
+
+**Copy full file with path (⌘⌥C).** With a selection, copies your text prefixed with file path and line numbers. With no selection, copies the *entire file* with the path header — the "paste this whole file into Claude" shortcut.
+
+**Configurable auto-save delay.** Not just on/off — a knob from 1 to 10 seconds. 1-second save means the AI always reads your latest. 10-second save gives you a buffer to change your mind.
+
+**Multi-window with independent sessions.** Each window remembers its own open files, tabs, and state. Open one window for docs and another for code notes.
+
+**Find in Folder (⌘⇧G).** Project-wide search with case sensitivity. Results grouped by file with context lines.
+
 ## What It Doesn't Do
 
 No cloud sync. No real-time collaboration. No plugin system. No Vim mode. No WYSIWYG. No proprietary format. No account creation. No subscription. No telemetry.

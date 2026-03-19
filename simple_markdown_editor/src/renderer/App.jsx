@@ -851,9 +851,12 @@ export default function App() {
       electronAPI.onCloseWindow(() => closeWindow()),
       electronAPI.onCopyFileContent(() => copyFileContent()),
       electronAPI.onCopySelectionWithContext(() => copySelectionWithContext()),
+      electronAPI.onFindInFolder(() => {
+        if (folderPath) setFindInFolderPath(folderPath);
+      }),
     ];
     return () => unsubs.forEach((fn) => fn());
-  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile, exportAs, closeTab, closeWindow, activeTabId, copyFileContent, copySelectionWithContext]);
+  }, [saveTab, saveTabAs, newFile, openFile, duplicateFile, exportAs, closeTab, closeWindow, activeTabId, copyFileContent, copySelectionWithContext, folderPath]);
 
   // ── Editor Context Menu ──
 

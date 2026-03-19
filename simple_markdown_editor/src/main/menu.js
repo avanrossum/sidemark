@@ -201,6 +201,15 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
             if (win) win.webContents.send('copy-selection-with-context');
           },
         },
+        { type: 'separator' },
+        {
+          label: 'Find in Folder...',
+          accelerator: 'CmdOrCtrl+Shift+G',
+          click: () => {
+            const win = getFocusedWindow();
+            if (win) win.webContents.send('find-in-folder');
+          },
+        },
       ],
     },
     {
