@@ -139,20 +139,21 @@ export default function SearchReplace({ editorRef, showReplace, onClose, onSearc
         <span className="search-count">
           {searchTerm ? `${currentMatch}/${matchCount}` : ''}
         </span>
-        <button className="search-btn" onClick={goToPrev} title="Previous (Shift+Enter)" disabled={matchCount === 0}>
+        <button className="search-btn" onClick={goToPrev} title="Previous (Shift+Enter)" disabled={matchCount === 0} tabIndex={-1}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" /></svg>
         </button>
-        <button className="search-btn" onClick={goToNext} title="Next (Enter)" disabled={matchCount === 0}>
+        <button className="search-btn" onClick={goToNext} title="Next (Enter)" disabled={matchCount === 0} tabIndex={-1}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" /></svg>
         </button>
         <button
           className={`search-btn ${caseSensitive ? 'active' : ''}`}
           onClick={() => setCaseSensitive((v) => !v)}
           title="Case sensitive"
+          tabIndex={-1}
         >
           Aa
         </button>
-        <button className="search-btn search-close" onClick={onClose} title="Close (Esc)">
+        <button className="search-btn search-close" onClick={onClose} title="Close (Esc)" tabIndex={-1}>
           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" /></svg>
         </button>
       </div>
@@ -165,10 +166,10 @@ export default function SearchReplace({ editorRef, showReplace, onClose, onSearc
             value={replaceTerm}
             onChange={(e) => setReplaceTerm(e.target.value)}
           />
-          <button className="search-btn" onClick={replaceOne} title="Replace" disabled={matchCount === 0}>
+          <button className="search-btn" onClick={replaceOne} title="Replace" disabled={matchCount === 0} tabIndex={-1}>
             Replace
           </button>
-          <button className="search-btn" onClick={replaceAll} title="Replace all" disabled={matchCount === 0}>
+          <button className="search-btn" onClick={replaceAll} title="Replace all" disabled={matchCount === 0} tabIndex={-1}>
             All
           </button>
         </div>

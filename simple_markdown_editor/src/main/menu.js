@@ -169,22 +169,6 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
         { role: 'paste' },
         { role: 'selectAll' },
         { type: 'separator' },
-        {
-          label: 'Find',
-          accelerator: 'CmdOrCtrl+F',
-          click: () => {
-            const win = getFocusedWindow();
-            if (win) win.webContents.send('toggle-search');
-          },
-        },
-        {
-          label: 'Find and Replace',
-          accelerator: 'CmdOrCtrl+H',
-          click: () => {
-            const win = getFocusedWindow();
-            if (win) win.webContents.send('toggle-search-replace');
-          },
-        },
         { type: 'separator' },
         {
           label: 'Copy File Contents',

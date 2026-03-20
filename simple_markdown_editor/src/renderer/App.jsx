@@ -5,7 +5,6 @@ import FileBrowser from './components/FileBrowser';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
 import Toolbar from './components/Toolbar';
-import SearchReplace from './components/SearchReplace';
 import DiffView from './components/DiffView';
 import PreviewHeader from './components/PreviewHeader';
 import FindInFolder from './components/FindInFolder';
@@ -42,9 +41,6 @@ export default function App() {
   const [activeTabId, setActiveTabId] = useState(null);
   const [folderPath, setFolderPath] = useState(null);
   const [settings, setSettings] = useState(null);
-  const [showSearch, setShowSearch] = useState(false);
-  const [showReplace, setShowReplace] = useState(false);
-  const [searchHighlight, setSearchHighlight] = useState(null);
   const [findInFolderPath, setFindInFolderPath] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
@@ -844,14 +840,6 @@ export default function App() {
       electronAPI.onMenuNewFile(() => newFile()),
       electronAPI.onOpenFile((filePath) => openFile(filePath)),
       electronAPI.onOpenFolder((dirPath) => setFolderPath(dirPath)),
-      electronAPI.onToggleSearch(() => {
-        setShowSearch((v) => !v);
-        setShowReplace(false);
-      }),
-      electronAPI.onToggleSearchReplace(() => {
-        setShowSearch(true);
-        setShowReplace((v) => !v);
-      }),
       electronAPI.onExportHtml(() => exportAs('html')),
       electronAPI.onExportPdf(() => exportAs('pdf')),
       electronAPI.onDuplicateFile(() => duplicateFile()),
@@ -1082,17 +1070,6 @@ export default function App() {
           ) : (
             <>
               <Toolbar onAction={handleToolbarAction} />
-              {showSearch && (
-                <SearchReplace
-                  editorRef={editorRef}
-                  showReplace={showReplace}
-                  onClose={() => {
-                    setShowSearch(false);
-                    setShowReplace(false);
-                  }}
-                  onSearchChange={setSearchHighlight}
-                />
-              )}
               <div onContextMenu={handleEditorContextMenu} style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
                 <Editor
                   ref={editorRef}
@@ -1119,7 +1096,6 @@ export default function App() {
             editorRef={editorRef}
             filePath={activeTab.filePath}
             onOpenFile={openFile}
-            searchHighlight={searchHighlight}
           />
         </div>
       </div>

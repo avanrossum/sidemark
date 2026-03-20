@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-03-19
+
+### Added
+
+- Tab key now inserts indentation in the editor (instead of cycling focus)
+- CodeMirror's built-in Find and Replace with regex, match case, and by-word support
+
+### Changed
+
+- Replaced custom search/replace UI with CodeMirror's native search panel
+- Removed Find and Find and Replace menu items (Cmd+F handled natively by editor)
+
 ## [1.0.2] - 2026-03-19
 
 ### Added

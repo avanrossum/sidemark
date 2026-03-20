@@ -99,16 +99,6 @@ const electronAPI = {
     ipcRenderer.on('open-folder', handler);
     return () => ipcRenderer.removeListener('open-folder', handler);
   },
-  onToggleSearch: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('toggle-search', handler);
-    return () => ipcRenderer.removeListener('toggle-search', handler);
-  },
-  onToggleSearchReplace: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('toggle-search-replace', handler);
-    return () => ipcRenderer.removeListener('toggle-search-replace', handler);
-  },
   onExportHtml: (callback) => {
     const handler = () => callback();
     ipcRenderer.on('export-html', handler);

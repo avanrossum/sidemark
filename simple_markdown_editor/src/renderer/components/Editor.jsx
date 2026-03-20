@@ -3,8 +3,8 @@ import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection } f
 import { EditorState, Transaction, RangeSet } from '@codemirror/state';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { searchKeymap } from '@codemirror/search';
+import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+import { search, searchKeymap } from '@codemirror/search';
 import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from '@codemirror/language';
 import { tags } from '@lezer/highlight';
 import { gitGutterExtension, setGitMarkers, computeGitMarkers } from '../gitGutter';
@@ -179,7 +179,8 @@ const Editor = forwardRef(function Editor({ content, onChange, settings, theme, 
       markdown({ base: markdownLanguage, codeLanguages: languages }),
       syntaxHighlighting(buildMarkdownHighlightStyle(theme === 'dark')),
       syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-      keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
+      keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap, ...searchKeymap]),
+      search({ top: true }),
       updateListener,
       EditorView.lineWrapping,
       buildEditorTheme(theme === 'dark', settings?.fontSize, settings?.fontFamily),
