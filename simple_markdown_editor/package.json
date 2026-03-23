@@ -1,6 +1,6 @@
 {
   "name": "sidemark",
-  "version": "1.0.5-beta.3",
+  "version": "1.0.5-beta.4",
   "description": "A markdown editor built for working alongside AI",
   "main": "src/main/main.js",
   "author": {
