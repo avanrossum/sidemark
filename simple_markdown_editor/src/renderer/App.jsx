@@ -230,10 +230,7 @@ export default function App() {
   useEffect(() => {
     if (IS_FOCUS_MODE) return;
     if (!sessionRestoredRef.current || !tabs) return;
-
-    const timer = setTimeout(saveSessionNow, 500);
-
-    return () => clearTimeout(timer);
+    saveSessionNow();
   }, [tabs, activeTabId, folderPath, saveSessionNow]);
 
   // Flush session immediately before window closes

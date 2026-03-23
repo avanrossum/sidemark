@@ -420,37 +420,19 @@ function setupAutoUpdater() {
     });
   });
 
-  ipcMain.handle('app:restart-for-update', async () => {
-    // Collect latest session data from all windows before quitting
-    const allWindows = [...windows];
-    if (allWindows.length > 0) {
-      await new Promise((resolve) => {
-        let remaining = allWindows.filter((w) => !w.isDestroyed()).length;
-        if (remaining === 0) { resolve(); return; }
+  ipcMain.handle('app:restart-for-update', () => {
+    // Prevent session removal when windows close during quit
+    isQuitting = true;
 
-        const onFlushed = () => {
-          remaining--;
-          if (remaining <= 0) {
-            ipcMain.removeListener('session-flushed', onFlushed);
-            resolve();
-          }
-        };
-        ipcMain.on('session-flushed', onFlushed);
-
-        for (const win of allWindows) {
-          if (!win.isDestroyed()) {
-            win.webContents.send('flush-session');
-          }
-        }
-
-        // Safety timeout — don't block update forever
-        setTimeout(() => {
-          ipcMain.removeListener('session-flushed', onFlushed);
-          resolve();
-        }, 2000);
-      });
+    // Force-close all windows (skip dirty checks — auto-save keeps files safe)
+    for (const win of [...windows]) {
+      if (!win.isDestroyed()) {
+        win._forceClose = true;
+      }
     }
 
+    // Session data is always current in the store (no renderer debounce),
+    // so flush to disk and install the update
     store.flush();
     autoUpdater.quitAndInstall(false, true);
   });

@@ -116,9 +116,9 @@
 }
 
 .tab-bar-drag-spacer {
-  flex: 1;
-  min-width: 60px;
+  width: 60px;
   height: 100%;
+  flex-shrink: 0;
   -webkit-app-region: drag;
 }
 
