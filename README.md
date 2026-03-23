@@ -7,6 +7,7 @@ Most markdown editors assume one author. SideMark assumes two. When Claude Code,
 Free and open source. No account, no subscription, no telemetry.
 
 [![Download](https://img.shields.io/badge/download-latest-blue)](https://github.com/avanrossum/sidemark/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/avanrossum/sidemark/total)](https://github.com/avanrossum/sidemark/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Website](https://img.shields.io/badge/website-mipyip.com-blue)](https://mipyip.com/products/sidemark)
 
