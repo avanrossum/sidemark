@@ -60,9 +60,10 @@ function TabContextMenu({ x, y, items, onClose }) {
 
 // ── Tab Bar ──
 
-export default function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onCloseOtherTabs, onCloseTabsToRight, onNewTab, onFocusMode }) {
+export default function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onCloseOtherTabs, onCloseTabsToRight, onNewTab, onFocusMode, onReorderTabs }) {
   const tabListRef = useRef(null);
   const [contextMenu, setContextMenu] = useState(null);
+  const [dragState, setDragState] = useState(null); // { dragId, overId, side }
 
   // ── Auto-scroll active tab into view ──
   useEffect(() => {
@@ -72,6 +73,53 @@ export default function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onC
       activeEl.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
     }
   }, [activeTabId, tabs.length]);
+
+  // ── Drag Reorder ──
+
+  const handleDragStart = useCallback((e, tabId) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', tabId);
+    setDragState({ dragId: tabId, overId: null, side: null });
+  }, []);
+
+  const handleDragOver = useCallback((e, tabId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!dragState || dragState.dragId === tabId) {
+      if (dragState?.overId) setDragState((s) => ({ ...s, overId: null, side: null }));
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    const side = e.clientX < midX ? 'left' : 'right';
+    setDragState((s) => ({ ...s, overId: tabId, side }));
+  }, [dragState]);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    if (!dragState?.dragId || !dragState?.overId || dragState.dragId === dragState.overId) {
+      setDragState(null);
+      return;
+    }
+    const fromIdx = tabs.findIndex((t) => t.id === dragState.dragId);
+    const toIdx = tabs.findIndex((t) => t.id === dragState.overId);
+    if (fromIdx === -1 || toIdx === -1) { setDragState(null); return; }
+
+    // Calculate target index accounting for side
+    let targetIdx = toIdx;
+    if (dragState.side === 'right') targetIdx += 1;
+    // Adjust if dragging forward (source removal shifts indices)
+    if (fromIdx < targetIdx) targetIdx -= 1;
+
+    if (fromIdx !== targetIdx) {
+      onReorderTabs(fromIdx, targetIdx);
+    }
+    setDragState(null);
+  }, [dragState, tabs, onReorderTabs]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragState(null);
+  }, []);
 
   // ── Context Menu ──
   const handleContextMenu = useCallback((e, tab, index) => {
@@ -105,6 +153,16 @@ export default function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onC
     setContextMenu({ x: e.clientX, y: e.clientY, items });
   }, [tabs, onCloseTab, onCloseOtherTabs, onCloseTabsToRight, onFocusMode]);
 
+  const getTabClassName = (tab) => {
+    let cls = `tab ${tab.id === activeTabId ? 'tab--active' : ''} ${tab.dirty ? 'tab--dirty' : ''}`;
+    if (dragState) {
+      if (dragState.dragId === tab.id) cls += ' tab--dragging';
+      if (dragState.overId === tab.id && dragState.side === 'left') cls += ' tab--drag-over-left';
+      if (dragState.overId === tab.id && dragState.side === 'right') cls += ' tab--drag-over-right';
+    }
+    return cls;
+  };
+
   return (
     <div className="tab-bar">
       <div className="tab-list" ref={tabListRef}>
@@ -112,9 +170,14 @@ export default function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onC
           <div
             key={tab.id}
             data-tab-id={tab.id}
-            className={`tab ${tab.id === activeTabId ? 'tab--active' : ''} ${tab.dirty ? 'tab--dirty' : ''}`}
+            className={getTabClassName(tab)}
             onClick={() => onSelectTab(tab.id)}
             onContextMenu={(e) => handleContextMenu(e, tab, index)}
+            draggable
+            onDragStart={(e) => handleDragStart(e, tab.id)}
+            onDragOver={(e) => handleDragOver(e, tab.id)}
+            onDrop={handleDrop}
+            onDragEnd={handleDragEnd}
           >
             <span className="tab-name">{tab.name}</span>
             {tab.dirty && <span className="tab-dirty-dot" />}
@@ -138,6 +201,7 @@ export default function TabBar({ tabs, activeTabId, onSelectTab, onCloseTab, onC
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
       </button>
+      <div className="tab-bar-drag-spacer" />
 
       {contextMenu && (
         <TabContextMenu

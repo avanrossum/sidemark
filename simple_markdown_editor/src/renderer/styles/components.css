@@ -14,6 +14,7 @@
   height: 100%;
   overflow-x: auto;
   flex: 1;
+  min-width: 0;
 }
 
 .tab-list::-webkit-scrollbar {
@@ -112,6 +113,27 @@
 
 .tab-new:hover {
   color: var(--text-primary);
+}
+
+.tab-bar-drag-spacer {
+  flex: 1;
+  min-width: 60px;
+  height: 100%;
+  -webkit-app-region: drag;
+}
+
+/* ── Tab Drag Reorder ── */
+
+.tab.tab--drag-over-left {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.tab.tab--drag-over-right {
+  box-shadow: inset -2px 0 0 var(--accent);
+}
+
+.tab.tab--dragging {
+  opacity: 0.4;
 }
 
 /* ── File Browser ── */

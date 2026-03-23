@@ -483,6 +483,17 @@ export default function App() {
     }
   }, [tabs, closeTab]);
 
+  // ── Tab Reorder ──
+
+  const reorderTabs = useCallback((fromIdx, toIdx) => {
+    setTabs((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+      return next;
+    });
+  }, []);
+
   const duplicateFile = useCallback(async () => {
     if (!activeTab) return;
     saveCurrentTabViewState();
@@ -1038,6 +1049,7 @@ export default function App() {
           onCloseTabsToRight={closeTabsToRight}
           onNewTab={newFile}
           onFocusMode={enterFocusMode}
+          onReorderTabs={reorderTabs}
         />
       </div>
 
