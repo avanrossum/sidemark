@@ -4,6 +4,46 @@ const { electronAPI } = window;
 
 const MD_EXTENSIONS = /\.(md|markdown|mdown|mkd|txt)$/i;
 
+// ── Relative Date Formatting ──
+
+function formatRelativeDate(timestamp) {
+  if (!timestamp) return '';
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+
+  const date = new Date(timestamp);
+  const month = date.toLocaleString('default', { month: 'short' });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const currentYear = new Date().getFullYear();
+  return year === currentYear ? `${month} ${day}` : `${month} ${day}, ${year}`;
+}
+
+function sortEntries(entries, sortBy) {
+  const sorted = [...entries];
+  sorted.sort((a, b) => {
+    // Directories always first
+    if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
+    if (sortBy === 'name') {
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    }
+    const field = sortBy === 'created' ? 'birthtime' : 'mtime';
+    const aTime = a[field] || 0;
+    const bTime = b[field] || 0;
+    return bTime - aTime; // Newest first
+  });
+  return sorted;
+}
+
 // ── Inline Rename Input ──
 
 function InlineRenameInput({ defaultValue, onSubmit, onCancel }) {
@@ -102,7 +142,7 @@ function ContextMenu({ x, y, items, onClose }) {
 
 // ── File Tree Item ──
 
-function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeFilePath, renamingPath, onFinishRename, onCancelRename, onContextMenu }) {
+function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeFilePath, renamingPath, onFinishRename, onCancelRename, onContextMenu, sortBy, showDates }) {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState([]);
   const rowRef = useRef(null);
@@ -212,12 +252,19 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeF
             onCancel={onCancelRename}
           />
         ) : (
-          <span className="file-name">{entry.name}</span>
+          <>
+            <span className="file-name">{entry.name}</span>
+            {showDates && !entry.isDirectory && (
+              <span className="file-date">
+                {formatRelativeDate(sortBy === 'created' ? entry.birthtime : entry.mtime)}
+              </span>
+            )}
+          </>
         )}
       </div>
       {expanded && entry.isDirectory && (
         <div className="file-tree-children">
-          {children.map((child) => (
+          {sortEntries(children, sortBy).map((child) => (
             <FileTreeItem
               key={child.path}
               entry={child}
@@ -230,6 +277,8 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeF
               onFinishRename={onFinishRename}
               onCancelRename={onCancelRename}
               onContextMenu={onContextMenu}
+              sortBy={sortBy}
+              showDates={showDates}
             />
           ))}
           {children.length === 0 && (
@@ -388,6 +437,17 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
   const [homeDir, setHomeDir] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [renamingPath, setRenamingPath] = useState(null);
+  const [sortBy, setSortBy] = useState('name'); // 'name' | 'modified' | 'created'
+
+  const showDates = sortBy !== 'name' && width >= 220;
+
+  const cycleSortBy = useCallback(() => {
+    setSortBy((prev) => {
+      if (prev === 'name') return 'modified';
+      if (prev === 'modified') return 'created';
+      return 'name';
+    });
+  }, []);
 
   // Get home directory on mount and default to it if no folder is set
   useEffect(() => {
@@ -648,6 +708,16 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
             {displayPath}
           </span>
           <button
+            className={`file-browser-sort-btn ${sortBy !== 'name' ? 'is-active' : ''}`}
+            onClick={cycleSortBy}
+            title={`Sort by: ${sortBy === 'name' ? 'Name' : sortBy === 'modified' ? 'Modified' : 'Created'}`}
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
+            </svg>
+            {sortBy !== 'name' && <span className="file-browser-sort-label">{sortBy === 'modified' ? 'M' : 'C'}</span>}
+          </button>
+          <button
             className="file-browser-open-btn"
             onClick={handleOpenFolder}
             title="Open folder"
@@ -677,7 +747,7 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
           </div>
         ) : (
           <div className="file-tree">
-            {entries.map((entry) => (
+            {sortEntries(entries, sortBy).map((entry) => (
               <FileTreeItem
                 key={entry.path}
                 entry={entry}
@@ -690,6 +760,8 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
                 onFinishRename={handleFinishRename}
                 onCancelRename={() => setRenamingPath(null)}
                 onContextMenu={handleContextMenu}
+                sortBy={sortBy}
+                showDates={showDates}
               />
             ))}
           </div>

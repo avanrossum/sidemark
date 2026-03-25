@@ -173,9 +173,38 @@
 }
 
 .file-browser-back-btn:hover,
-.file-browser-open-btn:hover {
+.file-browser-open-btn:hover,
+.file-browser-sort-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+}
+
+.file-browser-sort-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-tiny);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.file-browser-sort-btn.is-active {
+  color: var(--accent);
+}
+
+.file-browser-sort-label {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .file-browser-path {
@@ -258,6 +287,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-date {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: var(--space-xs);
 }
 
 .file-tree-empty {

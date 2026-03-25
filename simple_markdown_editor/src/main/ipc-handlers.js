@@ -93,10 +93,21 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
         if (item.name.startsWith('.')) continue;
         if (item.name === 'node_modules') continue;
 
+        const fullPath = path.join(dirPath, item.name);
+        let mtime = null;
+        let birthtime = null;
+        try {
+          const stat = fs.statSync(fullPath);
+          mtime = stat.mtimeMs;
+          birthtime = stat.birthtimeMs;
+        } catch (_) { /* skip stat errors */ }
+
         entries.push({
           name: item.name,
-          path: path.join(dirPath, item.name),
+          path: fullPath,
           isDirectory: item.isDirectory(),
+          mtime,
+          birthtime,
         });
       }
 
