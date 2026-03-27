@@ -28,20 +28,28 @@ function formatRelativeDate(timestamp) {
   return year === currentYear ? `${month} ${day}` : `${month} ${day}, ${year}`;
 }
 
-function sortEntries(entries, sortBy) {
+// sortMode: 'name' | 'modified-desc' | 'modified-asc' | 'created-desc' | 'created-asc'
+function sortEntries(entries, sortMode) {
   const sorted = [...entries];
   sorted.sort((a, b) => {
-    // Directories always first
     if (a.isDirectory !== b.isDirectory) return a.isDirectory ? -1 : 1;
-    if (sortBy === 'name') {
+    if (sortMode === 'name') {
       return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
     }
-    const field = sortBy === 'created' ? 'birthtime' : 'mtime';
+    const field = sortMode.startsWith('created') ? 'birthtime' : 'mtime';
+    const asc = sortMode.endsWith('-asc');
     const aTime = a[field] || 0;
     const bTime = b[field] || 0;
-    return bTime - aTime; // Newest first
+    return asc ? aTime - bTime : bTime - aTime;
   });
   return sorted;
+}
+
+// Age-based color: accent at 0 days, fading to muted at 30+ days
+function dateAgeFraction(timestamp) {
+  if (!timestamp) return 1;
+  const days = (Date.now() - timestamp) / (1000 * 60 * 60 * 24);
+  return Math.min(days / 30, 1); // 0 = just now, 1 = 30+ days old
 }
 
 // ── Inline Rename Input ──
@@ -142,7 +150,7 @@ function ContextMenu({ x, y, items, onClose }) {
 
 // ── File Tree Item ──
 
-function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeFilePath, renamingPath, onFinishRename, onCancelRename, onContextMenu, sortBy, showDates }) {
+function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeFilePath, renamingPath, onFinishRename, onCancelRename, onContextMenu, sortMode, showDates }) {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState([]);
   const rowRef = useRef(null);
@@ -254,17 +262,24 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeF
         ) : (
           <>
             <span className="file-name">{entry.name}</span>
-            {showDates && !entry.isDirectory && (
-              <span className="file-date">
-                {formatRelativeDate(sortBy === 'created' ? entry.birthtime : entry.mtime)}
-              </span>
-            )}
+            {showDates && (() => {
+              const ts = sortMode.startsWith('created') ? entry.birthtime : entry.mtime;
+              const age = dateAgeFraction(ts);
+              return (
+                <span
+                  className="file-date"
+                  style={{ color: `color-mix(in srgb, var(--accent) ${Math.round((1 - age) * 100)}%, var(--text-muted))` }}
+                >
+                  {formatRelativeDate(ts)}
+                </span>
+              );
+            })()}
           </>
         )}
       </div>
       {expanded && entry.isDirectory && (
         <div className="file-tree-children">
-          {sortEntries(children, sortBy).map((child) => (
+          {sortEntries(children, sortMode).map((child) => (
             <FileTreeItem
               key={child.path}
               entry={child}
@@ -277,7 +292,7 @@ function FileTreeItem({ entry, depth, onOpenFile, onSetRoot, refreshKey, activeF
               onFinishRename={onFinishRename}
               onCancelRename={onCancelRename}
               onContextMenu={onContextMenu}
-              sortBy={sortBy}
+              sortMode={sortMode}
               showDates={showDates}
             />
           ))}
@@ -431,22 +446,29 @@ function truncatePath(fullPath, homeDir) {
 
 // ── Main Component ──
 
-export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpenSettings, width, activeFilePath, onFileRenamed, onFileDeleted, favorites, onUpdateFavorites, onFindInFolder }) {
+export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpenSettings, width, activeFilePath, onFileRenamed, onFileDeleted, favorites, onUpdateFavorites, onFindInFolder, showFileDates }) {
   const [entries, setEntries] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [homeDir, setHomeDir] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [renamingPath, setRenamingPath] = useState(null);
-  const [sortBy, setSortBy] = useState('name'); // 'name' | 'modified' | 'created'
+  // 'name' | 'modified-desc' | 'modified-asc' | 'created-desc' | 'created-asc'
+  const [sortMode, setSortMode] = useState('name');
 
-  const showDates = sortBy !== 'name' && width >= 220;
+  const showDates = showFileDates;
 
-  const cycleSortBy = useCallback(() => {
-    setSortBy((prev) => {
-      if (prev === 'name') return 'modified';
-      if (prev === 'modified') return 'created';
-      return 'name';
+  const cycleDateSort = useCallback(() => {
+    setSortMode((prev) => {
+      if (prev === 'name' || prev === 'created-asc') return 'modified-desc';
+      if (prev === 'modified-desc') return 'modified-asc';
+      if (prev === 'modified-asc') return 'created-desc';
+      if (prev === 'created-desc') return 'created-asc';
+      return 'modified-desc';
     });
+  }, []);
+
+  const resetSort = useCallback(() => {
+    setSortMode('name');
   }, []);
 
   // Get home directory on mount and default to it if no folder is set
@@ -708,16 +730,6 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
             {displayPath}
           </span>
           <button
-            className={`file-browser-sort-btn ${sortBy !== 'name' ? 'is-active' : ''}`}
-            onClick={cycleSortBy}
-            title={`Sort by: ${sortBy === 'name' ? 'Name' : sortBy === 'modified' ? 'Modified' : 'Created'}`}
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-              <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z" />
-            </svg>
-            {sortBy !== 'name' && <span className="file-browser-sort-label">{sortBy === 'modified' ? 'M' : 'C'}</span>}
-          </button>
-          <button
             className="file-browser-open-btn"
             onClick={handleOpenFolder}
             title="Open folder"
@@ -738,6 +750,29 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
         onReorderFavorites={onUpdateFavorites}
       />
 
+      {/* Column headers (visible when dates are enabled) */}
+      {showDates && folderPath && (
+        <div className="file-browser-columns">
+          <span
+            className={`file-browser-col-name ${sortMode === 'name' ? 'is-active' : ''}`}
+            onClick={resetSort}
+          >
+            Name
+          </span>
+          <span
+            className={`file-browser-col-date ${sortMode !== 'name' ? 'is-active' : ''}`}
+            onClick={cycleDateSort}
+          >
+            {sortMode.startsWith('created') ? 'Created' : 'Modified'}
+            {sortMode !== 'name' && (
+              <svg className={`sort-arrow ${sortMode.endsWith('-asc') ? 'asc' : ''}`} viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
+                <path d="M7 10l5 5 5-5z" />
+              </svg>
+            )}
+          </span>
+        </div>
+      )}
+
       <div className="file-browser-content" onContextMenu={handleTreeContextMenu}>
         {!folderPath ? (
           <div className="file-browser-empty">
@@ -747,7 +782,7 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
           </div>
         ) : (
           <div className="file-tree">
-            {sortEntries(entries, sortBy).map((entry) => (
+            {sortEntries(entries, sortMode).map((entry) => (
               <FileTreeItem
                 key={entry.path}
                 entry={entry}
@@ -760,7 +795,7 @@ export default function FileBrowser({ folderPath, onOpenFile, onSetFolder, onOpe
                 onFinishRename={handleFinishRename}
                 onCancelRename={() => setRenamingPath(null)}
                 onContextMenu={handleContextMenu}
-                sortBy={sortBy}
+                sortMode={sortMode}
                 showDates={showDates}
               />
             ))}

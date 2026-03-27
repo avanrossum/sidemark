@@ -179,32 +179,54 @@
   color: var(--text-primary);
 }
 
-.file-browser-sort-btn {
+/* ── File Browser Column Headers ── */
+
+.file-browser-columns {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: var(--radius-tiny);
-  background: transparent;
+  padding: 2px var(--space-md);
+  font-size: 10px;
   color: var(--text-muted);
-  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
-  position: relative;
+  gap: var(--space-xs);
 }
 
-.file-browser-sort-btn.is-active {
-  color: var(--accent);
+.file-browser-col-name {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  padding: 1px var(--space-xs);
+  border-radius: var(--radius-tiny);
 }
 
-.file-browser-sort-label {
-  position: absolute;
-  bottom: 1px;
-  right: 1px;
-  font-size: 8px;
-  font-weight: 700;
-  line-height: 1;
+.file-browser-col-date {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 1px var(--space-xs);
+  border-radius: var(--radius-tiny);
+  white-space: nowrap;
+}
+
+.file-browser-col-name:hover,
+.file-browser-col-date:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.file-browser-col-name.is-active,
+.file-browser-col-date.is-active {
+  color: var(--text-primary);
+}
+
+.sort-arrow {
+  flex-shrink: 0;
+}
+
+.sort-arrow.asc {
+  transform: rotate(180deg);
 }
 
 .file-browser-path {

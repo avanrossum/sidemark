@@ -47,6 +47,7 @@ const DEFAULT_SETTINGS = {
   recentDirectories: [],
   windowBounds: null,
   favorites: [],
+  showFileDates: false,
 };
 
 module.exports = {

@@ -1065,6 +1065,7 @@ export default function App() {
           favorites={settings.favorites || []}
           onUpdateFavorites={(f) => electronAPI.setSetting('favorites', f)}
           onFindInFolder={setFindInFolderPath}
+          showFileDates={settings.showFileDates || false}
         />
 
         {/* Sidebar Resize Handle */}

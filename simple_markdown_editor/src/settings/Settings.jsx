@@ -130,6 +130,23 @@ export default function Settings({ settings: initialSettings, onClose }) {
 
         </div>
 
+        {/* ── File Browser ── */}
+        <div className="settings-section">
+          <div className="settings-section-title">File Browser</div>
+
+          <div className="settings-row">
+            <label>Show dates</label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={settings.showFileDates || false}
+                onChange={(e) => updateSetting('showFileDates', e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+        </div>
+
         {/* ── Saving ── */}
         <div className="settings-section">
           <div className="settings-section-title">Saving</div>
