@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-03-27
+
+### Added
+
+- File browser date columns: toggle "Show dates" in Settings > File Browser to see relative timestamps (e.g. "2m ago", "3d ago") on files and folders
+- Clickable column headers cycle through Modified ↓/↑ and Created ↓/↑ sort — newest files float to top, making agent-created files easy to spot
+- Age-based color gradient on dates: accent color for recent, fading to muted grey at 30+ days
+
 ## [1.0.5] - 2026-03-22
 
 ### Added

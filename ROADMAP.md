@@ -293,4 +293,15 @@
 
 ---
 
+## v1.0.6 — File Browser Dates
+
+> Status: **Complete**
+
+- [x] "Show dates" setting in Settings > File Browser
+- [x] Column headers (Name / Date) with clickable sort cycling (Modified ↓/↑, Created ↓/↑)
+- [x] Relative timestamps on files and folders (just now, 2m ago, 3d ago, Mar 23)
+- [x] Age-based color gradient: accent → muted grey over 30 days
+
+---
+
 See [Issues](https://github.com/avanrossum/sidemark/issues) for what's next.
