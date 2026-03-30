@@ -17,6 +17,12 @@ module.exports = {
     },
   ],
   artifactName: '${name}-${version}-${arch}.${ext}',
+  protocols: [
+    {
+      name: 'SideMark',
+      schemes: ['sidemark'],
+    },
+  ],
   mac: {
     category: 'public.app-category.productivity',
     target: ['dmg', 'zip'],
