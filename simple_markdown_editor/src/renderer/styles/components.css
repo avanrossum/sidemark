@@ -1029,3 +1029,40 @@ select:focus {
   color: var(--accent);
   font-weight: 500;
 }
+
+/* ── Open from Path Modal ── */
+
+.open-path-modal {
+  width: 480px;
+  padding: var(--space-lg);
+}
+
+.open-path-input {
+  width: 100%;
+  font-family: var(--font-mono, 'SF Mono', Menlo, Monaco, Consolas, monospace);
+  font-size: 13px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.open-path-input:focus {
+  border-color: var(--accent);
+}
+
+.open-path-error {
+  font-size: 12px;
+  color: var(--danger);
+  margin-top: var(--space-sm);
+}
+
+.open-path-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}

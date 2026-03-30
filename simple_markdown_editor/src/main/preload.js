@@ -11,6 +11,7 @@ const electronAPI = {
   fileExists: (filePath) => ipcRenderer.invoke('file:exists', filePath),
   getBasename: (filePath) => ipcRenderer.invoke('file:basename', filePath),
   getDirname: (filePath) => ipcRenderer.invoke('file:dirname', filePath),
+  resolvePath: (inputPath, cwd) => ipcRenderer.invoke('file:resolve-path', inputPath, cwd),
 
   // ── File Management ──
   renameFile: (oldPath, newPath) => ipcRenderer.invoke('file:rename', oldPath, newPath),
@@ -170,6 +171,11 @@ const electronAPI = {
     const handler = () => callback();
     ipcRenderer.on('find-in-folder', handler);
     return () => ipcRenderer.removeListener('find-in-folder', handler);
+  },
+  onOpenFromPath: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('open-from-path', handler);
+    return () => ipcRenderer.removeListener('open-from-path', handler);
   },
   onTextTransform: (callback) => {
     const handler = (_, transformType) => callback(transformType);

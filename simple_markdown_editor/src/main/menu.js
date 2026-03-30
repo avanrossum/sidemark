@@ -98,6 +98,14 @@ function buildMenu({ getFocusedWindow, store, onOpen, onSave, onSaveAs, onNewFil
           },
         },
         {
+          label: 'Open from Path...',
+          accelerator: 'CmdOrCtrl+Shift+P',
+          click: () => {
+            const win = getFocusedWindow();
+            if (win) win.webContents.send('open-from-path');
+          },
+        },
+        {
           label: 'Open Recent',
           submenu: recentSubmenu,
         },

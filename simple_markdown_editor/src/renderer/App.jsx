@@ -8,6 +8,7 @@ import Toolbar from './components/Toolbar';
 import DiffView from './components/DiffView';
 import PreviewHeader from './components/PreviewHeader';
 import FindInFolder from './components/FindInFolder';
+import OpenPathModal from './components/OpenPathModal';
 import Settings from '../settings/Settings';
 import ToastContainer from './components/Toast';
 
@@ -42,6 +43,7 @@ export default function App() {
   const [folderPath, setFolderPath] = useState(null);
   const [settings, setSettings] = useState(null);
   const [findInFolderPath, setFindInFolderPath] = useState(null);
+  const [showOpenPath, setShowOpenPath] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [diffData, setDiffData] = useState(null);
@@ -868,6 +870,7 @@ export default function App() {
       electronAPI.onFindInFolder(() => {
         if (folderPath) setFindInFolderPath(folderPath);
       }),
+      electronAPI.onOpenFromPath(() => setShowOpenPath(true)),
       electronAPI.onTextTransform((transformType) => {
         if (editorRef.current) editorRef.current.applyFormatting(transformType);
       }),
@@ -1136,6 +1139,15 @@ export default function App() {
           folderPath={findInFolderPath}
           onOpenFile={openFile}
           onClose={() => setFindInFolderPath(null)}
+        />
+      )}
+
+      {showOpenPath && (
+        <OpenPathModal
+          folderPath={folderPath}
+          onOpenFile={openFile}
+          onOpenFolder={setFolderPath}
+          onClose={() => setShowOpenPath(false)}
         />
       )}
 

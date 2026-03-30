@@ -12,6 +12,17 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'local-resource', privileges: { secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
 ]);
 
+// ── Deep Linking ──
+// Register sidemark:// protocol so the OS knows to open these URLs with our app.
+// In dev, pass --dev as argv so Electron recognizes the launch args.
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient('sidemark', process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient('sidemark');
+}
+
 // ── State ──
 const windows = new Set();
 const store = new Store();
@@ -457,6 +468,70 @@ function setupAutoUpdater() {
   }
 }
 
+// ── Single Instance Lock ──
+// Ensure only one instance runs. second-instance fires when a second launch
+// is attempted (e.g. clicking a sidemark:// URL while the app is already open).
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
+// ── Deep Link Handling ──
+
+const os = require('os');
+const fs = require('fs');
+const homeDir = os.homedir();
+
+function isDeepLinkPathAllowed(targetPath) {
+  if (typeof targetPath !== 'string' || !targetPath) return false;
+  const resolved = path.resolve(targetPath);
+  const underHome = resolved === homeDir || resolved.startsWith(homeDir + '/');
+  const underVolumes = resolved.startsWith('/Volumes/');
+  return underHome || underVolumes;
+}
+
+function parseDeepLink(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'sidemark:') return null;
+
+    // sidemark:///absolute/path/to/file.md?line=42
+    const filePath = decodeURIComponent(parsed.pathname);
+    if (!filePath) return null;
+
+    const line = parsed.searchParams.get('line');
+
+    return {
+      filePath,
+      line: line ? parseInt(line, 10) : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function handleDeepLink(url) {
+  const link = parseDeepLink(url);
+  if (!link) return;
+
+  if (!isDeepLinkPathAllowed(link.filePath)) {
+    console.warn('[main] Deep link blocked — path not allowed:', link.filePath);
+    return;
+  }
+
+  // Check if the path exists and whether it's a file or directory
+  try {
+    const stat = fs.statSync(link.filePath);
+    if (stat.isDirectory()) {
+      sendToFocused('open-folder', link.filePath);
+    } else {
+      handleMenuOpen(link.filePath);
+    }
+  } catch {
+    console.warn('[main] Deep link target does not exist:', link.filePath);
+  }
+}
+
 // ── App Lifecycle ──
 
 app.whenReady().then(() => {
@@ -578,6 +653,26 @@ app.whenReady().then(() => {
         win.webContents.send('open-file', filePath);
         store.addRecentFile(filePath);
       });
+    }
+  });
+
+  // Deep linking: sidemark:// URLs (macOS)
+  app.on('open-url', (event, url) => {
+    event.preventDefault();
+    handleDeepLink(url);
+  });
+
+  // Deep linking: second instance (URL passed as argv)
+  app.on('second-instance', (_event, argv) => {
+    // On macOS the URL comes via open-url, but on other platforms it's in argv
+    const url = argv.find((arg) => arg.startsWith('sidemark://'));
+    if (url) handleDeepLink(url);
+
+    // Focus the existing window
+    const win = getFocusedWindow();
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
     }
   });
 

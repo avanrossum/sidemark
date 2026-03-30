@@ -236,6 +236,43 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow }) {
     return result.response;
   });
 
+  // ── Path Resolution ──
+
+  ipcMain.handle('file:resolve-path', async (_, inputPath, cwd) => {
+    try {
+      if (!inputPath || typeof inputPath !== 'string') {
+        return { success: false, error: 'No path provided' };
+      }
+
+      // Expand ~ to home directory
+      let resolved = inputPath.trim();
+      if (resolved.startsWith('~/') || resolved === '~') {
+        resolved = path.join(homeDir, resolved.slice(1));
+      }
+
+      // Resolve relative paths against cwd (or home)
+      if (!path.isAbsolute(resolved)) {
+        resolved = path.resolve(cwd || homeDir, resolved);
+      }
+
+      requireValidPath(resolved);
+
+      if (!fs.existsSync(resolved)) {
+        return { success: false, error: 'Path does not exist' };
+      }
+
+      const stat = fs.statSync(resolved);
+      return {
+        success: true,
+        resolvedPath: resolved,
+        isDirectory: stat.isDirectory(),
+        isFile: stat.isFile(),
+      };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
   // ── Search in Folder ──
 
   const SEARCH_EXTENSIONS = new Set(['.md', '.markdown', '.mdown', '.mkd', '.mkdn', '.mdwn', '.mdx', '.txt']);
