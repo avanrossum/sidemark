@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-03-30
+
+### Added
+
+- **Open from Path** (⌘⇧P): paste a file or directory path to open it directly — supports `~` expansion and relative paths
+- **Deep linking**: `sidemark://` URL protocol — open files in SideMark from terminal, browser, or AI agent output (e.g. `open sidemark:///path/to/file.md`)
+- Single-instance lock prevents duplicate app windows when opening deep links
+
 ## [1.0.6] - 2026-03-27
 
 ### Added

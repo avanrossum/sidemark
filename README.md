@@ -75,6 +75,10 @@ If you work with AI coding tools — Claude Code, Copilot, Cursor, or anything t
 
 **Auto-save.** Keep your files continuously saved so external tools always read your latest version. Configurable delay (1-10 seconds), toggle on/off in Settings.
 
+**Deep linking.** `sidemark://` URL protocol lets AI agents and scripts open files directly in SideMark. Run `open sidemark:///path/to/file.md` from a terminal, or have your AI output clickable links. Directories open in the file browser.
+
+**Open from Path (⌘⇧P).** Paste any file path — absolute, relative, or with `~` — to open it instantly. No file dialog, no navigation. Built for grabbing paths from terminal output and AI conversations.
+
 **File deletion detection.** If an external tool deletes a file you have open, you're prompted to close the tab or re-save the file to disk.
 
 ## Features
@@ -84,6 +88,8 @@ If you work with AI coding tools — Claude Code, Copilot, Cursor, or anything t
 | **Editor** | CodeMirror 6 with markdown syntax highlighting, formatting toolbar with smart toggle detection, heading cycling, multi-line list handling, and full keyboard shortcuts (⌘B, ⌘I, ⌘K, etc.). Search and replace with case sensitivity and match navigation. Per-tab undo history. Git gutter markers for change tracking. Text Transforms (Edit menu) for Unicode italic, bold, small caps, and more — useful for LinkedIn and other platforms that don't support markdown. |
 | **Live Preview** | GitHub Flavored Markdown in real time. Bidirectional scroll sync. Local and remote images inline. Task list checkboxes. Clickable links — `.md` files open in a new tab, external links open in your browser. |
 | **Focus Mode** | Distraction-free fullscreen editing. Just the toolbar and editor, centered at a comfortable column width. Auto-saves in the background. ESC or ⌘W to return. Via right-click tab menu or ⌘⇧F. |
+| **Open from Path** | ⌘⇧P to open any file or folder by pasting its path. Supports `~`, relative paths, and auto-detects files vs directories. |
+| **Deep Linking** | `sidemark:///path/to/file.md` — open files from terminal, scripts, or AI agent output via the `sidemark://` URL protocol. |
 | **File Browser** | Expandable directory tree with auto-refresh. Context menu: new file, new folder, rename, delete (trash), show in Finder, copy path, favorites, find in folder. |
 | **Favorites** | Pin files and folders for quick access. Drag-and-drop reordering. Stale path detection for unmounted drives. |
 | **Tabs** | Dirty indicators, per-tab scroll/cursor restore, context menu (show in Finder, copy path, close, close others, close to right, focus mode). Auto-scrolls to keep active tab visible. |
@@ -109,6 +115,8 @@ These are already built and shipping — the details that turn "clever idea" int
 **Multi-window with independent sessions.** Each window remembers its own open files, tabs, and state. Open one window for docs and another for code notes.
 
 **Find in Folder (⌘⇧G).** Project-wide search with case sensitivity. Results grouped by file with context lines.
+
+**Deep linking (sidemark://).** Register the `sidemark://` URL scheme so external tools can open files directly. `open sidemark:///path/to/file.md` from any terminal. AI agents can output these as clickable links.
 
 ## What It Doesn't Do
 
