@@ -43,7 +43,7 @@ function requireValidPath(filePath) {
   }
 }
 
-function registerIpcHandlers({ store, fileWatcher, getFocusedWindow, globalShortcuts }) {
+function registerIpcHandlers({ store, fileWatcher, getFocusedWindow, globalShortcuts, autoUpdater }) {
 
   // Helper: get the window that sent an IPC event
   function getWindowFromEvent(event) {
@@ -417,6 +417,9 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow, globalShort
     if (key === 'globalHotkeysEnabled' || key === 'globalHotkeyOpenPath') {
       globalShortcuts.refresh();
     }
+    if (key === 'betaUpdates') {
+      autoUpdater.allowPrerelease = value || app.getVersion().includes('-');
+    }
     return { success: true };
   });
 
@@ -425,6 +428,9 @@ function registerIpcHandlers({ store, fileWatcher, getFocusedWindow, globalShort
     broadcast('settings:changed', store.getSettings());
     if ('globalHotkeysEnabled' in updates || 'globalHotkeyOpenPath' in updates) {
       globalShortcuts.refresh();
+    }
+    if ('betaUpdates' in updates) {
+      autoUpdater.allowPrerelease = updates.betaUpdates || app.getVersion().includes('-');
     }
     return { success: true };
   });

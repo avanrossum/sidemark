@@ -286,6 +286,21 @@ export default function Settings({ settings: initialSettings, onClose }) {
           </div>
 
           <div className="settings-row">
+            <div>
+              <label>Beta updates</label>
+              <div className="hint">Receive pre-release updates</div>
+            </div>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={settings.betaUpdates || false}
+                onChange={(e) => updateSetting('betaUpdates', e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
+
+          <div className="settings-row">
             <button
               className="btn btn-ghost"
               onClick={() => electronAPI.openExternal('https://mipyip.com')}

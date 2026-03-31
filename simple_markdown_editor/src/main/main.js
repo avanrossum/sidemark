@@ -343,10 +343,9 @@ function setupAutoUpdater() {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;
 
-  // If running a prerelease version (e.g. 1.0.5-beta.1), opt into the beta channel
-  // so beta builds auto-update to the next beta. Stable builds ignore prereleases.
+  // Opt into beta channel if running a prerelease version OR user enabled beta updates
   const currentVersion = app.getVersion();
-  if (currentVersion.includes('-')) {
+  if (currentVersion.includes('-') || store.getSetting('betaUpdates')) {
     autoUpdater.allowPrerelease = true;
   }
 
@@ -630,6 +629,7 @@ app.whenReady().then(() => {
     fileWatcher,
     getFocusedWindow,
     globalShortcuts,
+    autoUpdater,
   });
 
   buildAndSetMenu({
